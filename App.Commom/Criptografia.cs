@@ -5,7 +5,7 @@ namespace App.Common
 {
     public static class Criptografia
     {
-        public static string geraHash_SHA512(string valor)
+        public static string GeraHash(string valor)
         {
             var arrHash = SHA512.HashData(Encoding.UTF8.GetBytes(valor));
             var sbHash = new StringBuilder();

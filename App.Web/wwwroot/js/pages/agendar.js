@@ -2,9 +2,11 @@
 let servicoSelecionadoId = null;
 let horarioSelecionado = null;
 let calendarioInstancia = null;
+let datasBloqueadas = [];
 
 $(document).ready(async function () {
     applyPhoneMask('#numeroTelefoneCliente');
+    await carregarParametrosAgendamento();
     inicializarCalendario();
     await carregarServicos();
     configurarEventos();
@@ -35,6 +37,7 @@ function inicializarCalendario() {
         inline: true,
         defaultDate: new Date(),
         minDate: 'today',
+        disable: datasBloqueadas,
         onChange: function (selectedDates) {
             const selecionada = selectedDates && selectedDates[0] ? selectedDates[0] : null;
             if (!selecionada) {
@@ -59,9 +62,25 @@ function preencherDataPadrao() {
     }
 }
 
+async function carregarParametrosAgendamento() {
+    if (typeof Parametros_Obter !== 'function') {
+        return;
+    }
+
+    try {
+        const parametros = await Parametros_Obter();
+        const datas = parametros.datasFolgaFeriado || parametros.DatasFolgaFeriado || [];
+        datasBloqueadas = datas.map(function (item) {
+            return String(item).slice(0, 10);
+        });
+    } catch (erro) {
+        datasBloqueadas = [];
+    }
+}
+
 async function carregarServicos() {
     try {
-        servicos = await Servico_Listar();
+        servicos = await Servicos_Listar();
 
         const container = $('#servicosContainer');
         container.empty();
@@ -113,7 +132,7 @@ async function atualizarHorarios() {
     }
 
     try {
-        const horarios = await Agendamento_ListarHorariosDisponiveis(dataSelecionada, servicoSelecionadoId);
+        const horarios = await Agendamentos_ListarHorariosDisponiveis(dataSelecionada, servicoSelecionadoId);
 
         if (!horarios || horarios.length === 0) {
             container.html('<p class="text-muted">Não há horários disponíveis para este dia.</p>');
@@ -154,7 +173,7 @@ async function confirmarAgendamento() {
     }
 
     try {
-        await Agendamento_Incluir(payload);
+        await Agendamentos_Incluir(payload);
         $('#mensagemAgendamento').text('Agendamento realizado com sucesso!').removeClass('text-danger').addClass('text-success');
         $('#agendamentoForm')[0].reset();
         $('#horariosContainer').html('<p class="text-muted">Selecione serviço e data para exibir horários.</p>');

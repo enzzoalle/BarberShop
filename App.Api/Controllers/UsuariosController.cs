@@ -5,31 +5,29 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace App.Api.Controllers;
 
-[Route("Usuario")]
-public class UsuarioController : ControllerBase
+[Route("Usuarios")]
+public class UsuariosController : ControllerBase
 {
-    private readonly IUsuarioService _usuarioService;
+    private readonly IUsuariosService _usuariosService;
 
-    public UsuarioController(IUsuarioService usuarioService)
+    public UsuariosController(IUsuariosService usuariosService)
     {
-        _usuarioService = usuarioService;
+        _usuariosService = usuariosService;
     }
 
-    [HttpGet]
-    [Route("Listar")]
+    [HttpGet("Listar")]
     public IActionResult Listar()
     {
-        var registros = _usuarioService.Listar();
+        var registros = _usuariosService.Listar();
         return Ok(registros);
     }
 
-    [HttpPost]
-    [Route("Incluir")]
-    public IActionResult Incluir([FromBody] Usuario usuario)
+    [HttpPost("Incluir")]
+    public IActionResult Incluir([FromBody] Usuarios usuarios)
     {
         try
         {
-            _usuarioService.Incluir(usuario);
+            _usuariosService.Incluir(usuarios);
             return Ok("Registro incluído com sucesso!");
         }
         catch (InvalidOperationException ex)
@@ -38,13 +36,12 @@ public class UsuarioController : ControllerBase
         }
     }
 
-    [HttpPost]
-    [Route("Cadastrar")]
+    [HttpPost("Cadastrar")]
     public IActionResult Cadastrar([FromBody] CadastrarUsuarioRequest request)
     {
         try
         {
-            _usuarioService.Cadastrar(request);
+            _usuariosService.Cadastrar(request);
             return Ok("Cadastro realizado com sucesso!");
         }
         catch (InvalidOperationException ex)
@@ -53,13 +50,12 @@ public class UsuarioController : ControllerBase
         }
     }
 
-    [HttpPost]
-    [Route("Logar")]
+    [HttpPost("Logar")]
     public IActionResult Logar([FromBody] LoginUsuarioRequest request)
     {
         try
         {
-            var usuario = _usuarioService.Logar(request);
+            var usuario = _usuariosService.Logar(request);
             return Ok(usuario);
         }
         catch (UnauthorizedAccessException ex)
@@ -68,13 +64,12 @@ public class UsuarioController : ControllerBase
         }
     }
 
-    [HttpPost]
-    [Route("LogarAdmin")]
+    [HttpPost("LogarAdmin")]
     public IActionResult LogarAdmin([FromBody] LoginUsuarioRequest request)
     {
         try
         {
-            var usuario = _usuarioService.Logar(request);
+            var usuario = _usuariosService.Logar(request);
             if (!usuario.IsAdmin)
             {
                 return StatusCode(StatusCodes.Status403Forbidden, "Usuário sem permissão para acessar o painel administrativo.");
@@ -88,19 +83,17 @@ public class UsuarioController : ControllerBase
         }
     }
 
-    [HttpPost]
-    [Route("Excluir")]
+    [HttpPost("Excluir")]
     public IActionResult Excluir(int id)
     {
-        _usuarioService.Excluir(id);
+        _usuariosService.Excluir(id);
         return Ok("Registro excluído com sucesso!");
     }
 
-    [HttpPost]
-    [Route("Editar")]
-    public IActionResult Editar([FromBody] Usuario usuario)
+    [HttpPost("Editar")]
+    public IActionResult Editar([FromBody] Usuarios usuarios)
     {
-        _usuarioService.Editar(usuario);
+        _usuariosService.Editar(usuarios);
         return Ok("Registro editado com sucesso!");
     }
 }

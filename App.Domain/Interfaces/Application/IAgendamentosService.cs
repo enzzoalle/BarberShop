@@ -3,9 +3,10 @@ using App.Domain.Entities;
 
 namespace App.Domain.Interfaces;
 
-public interface IAgendamentoService
+public interface IAgendamentosService
 {
-    IEnumerable<Agendamento> Listar();
+    IEnumerable<Agendamentos> Listar();
     IEnumerable<string> ListarHorariosDisponiveis(DateTime data, int servicoId);
     void Incluir(CriarAgendamentoRequest request);
+    void IncluirManual(CriarAgendamentoManualRequest request);
 }

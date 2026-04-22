@@ -1,6 +1,6 @@
 ﻿namespace App.Domain.Entities;
 
-public class Servico
+public class Servicos
 {
     public int Id { get; set; }
     public string Nome { get; set; }
@@ -10,5 +10,5 @@ public class Servico
     public bool Ativo { get; set; }
     public DateTime DataCriacao { get; set; }
 
-    public ICollection<Agendamento> Agendamentos { get; set; } = new List<Agendamento>();
+    public ICollection<Agendamentos> Agendamentos { get; set; } = new List<Agendamentos>();
 }

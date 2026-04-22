@@ -12,28 +12,39 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Usuario>()
+        modelBuilder.Entity<Usuarios>()
             .HasIndex(u => u.Nome)
             .IsUnique();
 
-        modelBuilder.Entity<Usuario>()
+        modelBuilder.Entity<Usuarios>()
             .HasIndex(u => u.NumeroTelefone)
             .IsUnique();
 
-        modelBuilder.Entity<Cliente>()
+        modelBuilder.Entity<Clientes>()
             .HasOne(c => c.Usuario)
             .WithOne(u => u.Cliente)
-            .HasForeignKey<Cliente>(c => c.UsuarioId)
+            .HasForeignKey<Clientes>(c => c.UsuarioId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<FolgasFeriados>()
+            .HasOne(x => x.Parametros)
+            .WithMany(x => x.FolgasFeriados)
+            .HasForeignKey(x => x.ParametrosId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<FolgasFeriados>()
+            .HasIndex(x => new { x.ParametrosId, x.Data })
+            .IsUnique();
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
         base.OnModelCreating(modelBuilder);
     }
 
-    public DbSet<Usuario> Usuario { get; set; }
-    public DbSet<Empresa> Empresa { get; set; }
-    public DbSet<Agendamento> Agendamento { get; set; }
-    public DbSet<Servico> Servico { get; set; }
-    public DbSet<Cliente> Cliente { get; set; }
+    public DbSet<Usuarios> Usuarios { get; set; }
+    public DbSet<Parametros> Parametros { get; set; }
+    public DbSet<Agendamentos> Agendamentos { get; set; }
+    public DbSet<Servicos> Servicos { get; set; }
+    public DbSet<Clientes> Clientes { get; set; }
+    public DbSet<FolgasFeriados> FolgasFeriados { get; set; }
 }

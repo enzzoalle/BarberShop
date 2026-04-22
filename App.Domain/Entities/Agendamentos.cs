@@ -2,11 +2,11 @@
 
 namespace App.Domain.Entities;
 
-public class Agendamento
+public class Agendamentos
 {
     public int Id { get; set; }
-    public Cliente Cliente { get; set; }
-    public Servico Servico { get; set; }
+    public Clientes Clientes { get; set; }
+    public Servicos Servicos { get; set; }
     public DateTime DataAgendamento { get; set; }
     public TimeSpan HorarioAgendamento { get; set; }
     public string? Observacao { get; set; }

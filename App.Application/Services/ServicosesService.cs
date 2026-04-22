@@ -4,16 +4,16 @@ using App.Domain.Interfaces.Repository;
 
 namespace App.Application.Services;
 
-public class ServicoService : IServicoService
+public class ServicosesService : IServicosService
 {
-    private readonly IRepositoryBase<Servico> _servicoRepository;
+    private readonly IRepositoryBase<Servicos> _servicoRepository;
 
-    public ServicoService(IRepositoryBase<Servico> servicoRepository)
+    public ServicosesService(IRepositoryBase<Servicos> servicoRepository)
     {
         _servicoRepository = servicoRepository;
     }
 
-    public IEnumerable<Servico> Listar()
+    public IEnumerable<Servicos> Listar()
     {
         return _servicoRepository
             .Query(x => x.Ativo)
@@ -21,7 +21,7 @@ public class ServicoService : IServicoService
             .ToList();
     }
 
-    public IEnumerable<Servico> ListarTodos()
+    public IEnumerable<Servicos> ListarTodos()
     {
         return _servicoRepository
             .Query(x => true)
@@ -29,29 +29,29 @@ public class ServicoService : IServicoService
             .ToList();
     }
 
-    public void Incluir(Servico servico)
+    public void Incluir(Servicos servicos)
     {
-        if (string.IsNullOrWhiteSpace(servico.Nome))
+        if (string.IsNullOrWhiteSpace(servicos.Nome))
         {
             throw new InvalidOperationException("O nome do serviço é obrigatório.");
         }
 
-        if (servico.Duracao <= TimeSpan.Zero)
+        if (servicos.Duracao <= TimeSpan.Zero)
         {
             throw new InvalidOperationException("A duração do serviço deve ser maior que zero.");
         }
 
-        if (servico.Valor <= 0)
+        if (servicos.Valor <= 0)
         {
             throw new InvalidOperationException("O valor do serviço deve ser maior que zero.");
         }
 
-        servico.Nome = servico.Nome.Trim();
-        servico.Descricao = string.IsNullOrWhiteSpace(servico.Descricao) ? null : servico.Descricao.Trim();
-        servico.DataCriacao = servico.DataCriacao == default ? DateTime.Now : servico.DataCriacao;
-        servico.Ativo = true;
+        servicos.Nome = servicos.Nome.Trim();
+        servicos.Descricao = string.IsNullOrWhiteSpace(servicos.Descricao) ? null : servicos.Descricao.Trim();
+        servicos.DataCriacao = servicos.DataCriacao == default ? DateTime.Now : servicos.DataCriacao;
+        servicos.Ativo = true;
 
-        _servicoRepository.Insert(servico);
+        _servicoRepository.Insert(servicos);
     }
 
     public void AlterarStatus(int id, bool ativo)

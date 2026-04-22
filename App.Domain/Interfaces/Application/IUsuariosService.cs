@@ -3,12 +3,12 @@ using App.Domain.Entities;
 
 namespace App.Domain.Interfaces;
 
-public interface IUsuarioService
+public interface IUsuariosService
 {
-    IEnumerable<Usuario> Listar();
+    IEnumerable<Usuarios> Listar();
     void Cadastrar(CadastrarUsuarioRequest request);
     UsuarioAutenticadoResponse Logar(LoginUsuarioRequest request);
-    void Incluir(Usuario usuario);
+    void Incluir(Usuarios usuarios);
     void Excluir(int id);
-    void Editar(Usuario usuario);
+    void Editar(Usuarios usuarios);
 }

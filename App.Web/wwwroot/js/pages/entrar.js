@@ -27,7 +27,7 @@ async function fazerLogin() {
     }
 
     try {
-        const usuario = await Usuario_Logar(payload);
+        const usuario = await Usuarios_Logar(payload);
         localStorage.setItem('usuario-logado', JSON.stringify(usuario));
         window.dispatchEvent(new Event('auth-changed'));
 
@@ -59,7 +59,7 @@ async function criarConta() {
     }
 
     try {
-        await Usuario_Cadastrar(payload);
+        await Usuarios_Cadastrar(payload);
         window.location.href = '/entrar?cadastro=sucesso';
     } catch (erro) {
         const mensagem = erro.responseText || 'Não foi possível concluir o cadastro.';
@@ -101,4 +101,3 @@ function exibirMensagemAuth(mensagem, sucesso) {
         .removeClass('text-danger text-success')
         .addClass(sucesso ? 'text-success' : 'text-danger');
 }
-

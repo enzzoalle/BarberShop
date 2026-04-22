@@ -1,4 +1,3 @@
-using App.Application;
 using App.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,7 +9,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-builder.Services.AddApplicationDependencies();
+App.Persistence.DependencyInjectionConfig.Inject(builder.Services);
+App.Application.DependencyInjectionConfig.Inject(builder.Services);
 
 builder.Services.AddCors(options =>
 {

@@ -11,7 +11,7 @@
 
         <form id="adminLoginForm" class="d-grid gap-3">
             <div>
-                <label class="form-label" for="adminUsuario">Usuário</label>
+                <label class="form-label" for="adminUsuario">Usuario</label>
                 <input id="adminUsuario" class="form-control" required maxlength="100" />
             </div>
             <div>
@@ -30,62 +30,97 @@
             <button id="adminSair" class="btn btn-outline-secondary btn-sm" type="button">Sair</button>
         </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-12 col-lg-5">
-                <div class="glass-card h-100">
-                    <h5 class="mb-3">Novo serviço</h5>
-                    <form id="novoServicoForm" class="d-grid gap-3">
-                        <div>
-                            <label class="form-label" for="servicoNome">Nome</label>
-                            <input id="servicoNome" class="form-control" maxlength="100" required />
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <label class="form-label" for="servicoDuracao">Duração (min)</label>
-                                <input id="servicoDuracao" type="number" min="10" step="5" class="form-control" value="30" required />
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label" for="servicoValor">Valor (R$)</label>
-                                <input id="servicoValor" type="number" min="1" step="0.5" class="form-control" required />
-                            </div>
-                        </div>
-                        <div>
-                            <label class="form-label" for="servicoDescricao">Descrição</label>
-                            <textarea id="servicoDescricao" class="form-control" rows="2" maxlength="300"></textarea>
-                        </div>
-                        <button class="btn btn-primary" type="submit">Cadastrar serviço</button>
-                    </form>
-                    <p id="adminServicoMensagem" class="mt-3 mb-0"></p>
-                </div>
-            </div>
+        <ul class="nav nav-pills admin-tabs mb-3" id="adminTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-insights" data-bs-toggle="pill" data-bs-target="#painel-insights" type="button" role="tab" aria-controls="painel-insights" aria-selected="true">Insights e próximos clientes</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-manual" data-bs-toggle="pill" data-bs-target="#painel-manual" type="button" role="tab" aria-controls="painel-manual" aria-selected="false">Agendamento manual</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-parametros" data-bs-toggle="pill" data-bs-target="#painel-parametros" type="button" role="tab" aria-controls="painel-parametros" aria-selected="false">Parâmetros</button>
+            </li>
+        </ul>
 
-            <div class="col-12 col-lg-7">
-                <div class="glass-card h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
-                        <h5 class="mb-0">Serviços cadastrados</h5>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="painel-insights" role="tabpanel" aria-labelledby="tab-insights" tabindex="0">
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-4">
+                        <article class="glass-card h-100">
+                            <small class="text-muted d-block">Agendamentos do dia</small>
+                            <h3 id="insightAgendamentosHoje" class="mb-0">0</h3>
+                        </article>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-dark table-hover align-middle mb-0">
-                            <thead>
-                            <tr>
-                                <th>Serviço</th>
-                                <th>Duração</th>
-                                <th>Valor</th>
-                                <th>Status</th>
-                            </tr>
-                            </thead>
-                            <tbody id="adminServicosBody">
-                            <tr><td colspan="4" class="text-muted">Carregando...</td></tr>
-                            </tbody>
-                        </table>
+                    <div class="col-12 col-md-4">
+                        <article class="glass-card h-100">
+                            <small class="text-muted d-block">Próximos clientes</small>
+                            <h3 id="insightProximosClientes" class="mb-0">0</h3>
+                        </article>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <article class="glass-card h-100">
+                            <small class="text-muted d-block">Serviços ativos</small>
+                            <h3 id="insightServicosAtivos" class="mb-0">0</h3>
+                        </article>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-12">
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-lg-5">
+                        <div class="glass-card h-100">
+                            <h5 class="mb-3">Novo serviço</h5>
+                            <form id="novoServicoForm" class="d-grid gap-3">
+                                <div>
+                                    <label class="form-label" for="servicoNome">Nome</label>
+                                    <input id="servicoNome" class="form-control" maxlength="100" required />
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label" for="servicoDuracao">Duração (min)</label>
+                                        <input id="servicoDuracao" type="number" min="10" step="5" class="form-control" value="30" required />
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label" for="servicoValor">Valor (R$)</label>
+                                        <input id="servicoValor" type="number" min="1" step="0.5" class="form-control" required />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="form-label" for="servicoDescricao">Descrição</label>
+                                    <textarea id="servicoDescricao" class="form-control" rows="2" maxlength="300"></textarea>
+                                </div>
+                                <button class="btn btn-primary" type="submit">Cadastrar serviço</button>
+                            </form>
+                            <p id="adminServicoMensagem" class="mt-3 mb-0"></p>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-7">
+                        <div class="glass-card h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+                                <h5 class="mb-0">Serviços cadastrados</h5>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover align-middle mb-0">
+                                    <thead>
+                                    <tr>
+                                        <th>Serviço</th>
+                                        <th>Duração</th>
+                                        <th>Valor</th>
+                                        <th>Status</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="adminServicosBody">
+                                    <tr><td colspan="4" class="text-muted">Carregando...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="glass-card">
                     <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
-                        <h5 class="mb-0">Agenda do dia</h5>
+                        <h5 class="mb-0">Agenda e próximos clientes</h5>
                         <input id="filtroDataAgenda" type="date" class="form-control form-control-sm admin-date-filter" />
                     </div>
                     <div class="table-responsive">
@@ -106,6 +141,84 @@
                     </div>
                 </div>
             </div>
+
+            <div class="tab-pane fade" id="painel-manual" role="tabpanel" aria-labelledby="tab-manual" tabindex="0">
+                <div class="glass-card mb-4">
+                    <h5 class="mb-3">Criar agendamento manual</h5>
+                    <form id="agendamentoManualForm" class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="manualNomeCliente">Nome do cliente</label>
+                            <input id="manualNomeCliente" class="form-control" maxlength="100" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="manualTelefoneCliente">Telefone (opcional)</label>
+                            <input id="manualTelefoneCliente" class="form-control" maxlength="20" placeholder="(55) 99999-9999" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="manualData">Data</label>
+                            <input id="manualData" type="date" class="form-control" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="manualServico">Serviço</label>
+                            <select id="manualServico" class="form-select" required>
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="manualHorario">Horário</label>
+                            <select id="manualHorario" class="form-select" required>
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="manualObservacao">Observação (opcional)</label>
+                            <textarea id="manualObservacao" class="form-control" rows="3" maxlength="500"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">Salvar agendamento manual</button>
+                        </div>
+                    </form>
+                    <p id="adminManualMensagem" class="mt-3 mb-0"></p>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="painel-parametros" role="tabpanel" aria-labelledby="tab-parametros" tabindex="0">
+                <div class="glass-card">
+                    <h5 class="mb-3">Parâmetros de funcionamento</h5>
+                    <form id="parametrosForm" class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label" for="paramHorarioAbertura">Horário de abertura</label>
+                            <input id="paramHorarioAbertura" type="time" class="form-control" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="paramHorarioFechamento">Horário de fechamento</label>
+                            <input id="paramHorarioFechamento" type="time" class="form-control" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="paramDiasFuncionamento">Dias de funcionamento</label>
+                            <select id="paramDiasFuncionamento" class="form-select" required>
+                                <option value="1">Dias úteis</option>
+                                <option value="2">Ate sábado</option>
+                                <option value="3">Todos os dias</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="paramDataFolga">Adicionar folga/feriado</label>
+                            <div class="d-flex gap-2">
+                                <input id="paramDataFolga" type="date" class="form-control" />
+                                <button type="button" id="btnAdicionarFolga" class="btn btn-outline-light">Adicionar</button>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div id="folgasContainer" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">Salvar parâmetros</button>
+                        </div>
+                    </form>
+                    <p id="adminParametrosMensagem" class="mb-0"></p>
+                </div>
+            </div>
         </div>
 
         <p class="mb-0 text-muted">Acesso administrativo validado com sucesso.</p>
@@ -116,8 +229,8 @@
 {
     <script src="~/js/core/cookies.js" asp-append-version="true"></script>
     <script src="~/js/core/requester.js" asp-append-version="true"></script>
-    <script src="~/js/services/usuarioService.js" asp-append-version="true"></script>
-    <script src="~/js/services/agendamentoService.js" asp-append-version="true"></script>
+    <script src="~/js/services/usuariosService.js" asp-append-version="true"></script>
+    <script src="~/js/services/agendamentosService.js" asp-append-version="true"></script>
+    <script src="~/js/services/parametrosService.js" asp-append-version="true"></script>
     <script src="~/js/pages/admin.js" asp-append-version="true"></script>
 }
-

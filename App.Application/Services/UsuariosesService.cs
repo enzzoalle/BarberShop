@@ -6,16 +6,16 @@ using App.Common;
 
 namespace App.Application.Services;
 
-public class UsuarioService : IUsuarioService
+public class UsuariosesService : IUsuariosService
 {
-    private readonly IRepositoryBase<Usuario> _usuarioRepository;
+    private readonly IRepositoryBase<Usuarios> _usuarioRepository;
 
-    public UsuarioService(IRepositoryBase<Usuario> usuarioRepository)
+    public UsuariosesService(IRepositoryBase<Usuarios> usuarioRepository)
     {
         _usuarioRepository = usuarioRepository;
     }
 
-    public IEnumerable<Usuario> Listar()
+    public IEnumerable<Usuarios> Listar()
     {
         var registros = _usuarioRepository.GetAll();
         return registros;
@@ -47,9 +47,9 @@ public class UsuarioService : IUsuarioService
             throw new InvalidOperationException("Já existe um cadastro para esse usuário.");
         }
 
-        var senhaHash = Criptografia.geraHash_SHA512(request.Senha.Trim());
+        var senhaHash = Criptografia.GeraHash(request.Senha.Trim());
 
-        var novoUsuario = new Usuario
+        var novoUsuario = new Usuarios
         {
             Nome = usuarioNormalizado,
             Senha = senhaHash,
@@ -69,10 +69,10 @@ public class UsuarioService : IUsuarioService
         }
 
         var usuarioNormalizado = request.Usuario.Trim();
-        var senhaHash = Criptografia.geraHash_SHA512(request.Senha.Trim());
+        var senhaHash = Criptografia.GeraHash(request.Senha.Trim());
 
         var usuario = _usuarioRepository
-            .Query(x => x.Nome.ToLower() == usuarioNormalizado.ToLower() && x.Senha == senhaHash)
+            .Query(x => x.Nome.Equals(usuarioNormalizado, StringComparison.CurrentCultureIgnoreCase) && x.Senha == senhaHash)
             .FirstOrDefault();
 
         if (usuario is null)
@@ -90,13 +90,13 @@ public class UsuarioService : IUsuarioService
         };
     }
 
-    public void Incluir(Usuario usuario)
+    public void Incluir(Usuarios usuarios)
     {
         Cadastrar(new CadastrarUsuarioRequest
         {
-            Nome = usuario.Nome,
-            Senha = usuario.Senha,
-            NumeroTelefone = usuario.NumeroTelefone
+            Nome = usuarios.Nome,
+            Senha = usuarios.Senha,
+            NumeroTelefone = usuarios.NumeroTelefone
         });
     }
     
@@ -106,9 +106,9 @@ public class UsuarioService : IUsuarioService
         _usuarioRepository.Remove(objeto);
     }
     
-    public void Editar(Usuario usuario)
+    public void Editar(Usuarios usuarios)
     {
-        _usuarioRepository.Update(usuario);
+        _usuarioRepository.Update(usuarios);
     }
 
     private static string NormalizarTelefone(string numeroTelefone)
