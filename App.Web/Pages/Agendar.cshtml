@@ -1,0 +1,77 @@
+﻿@page "/agendar"
+@model App.Web.Pages.AgendarModel
+@{
+    ViewData["Title"] = "Agendar";
+}
+
+<section class="agendamento-container">
+    <div class="section-head">
+        <span class="section-tag">Agendar</span>
+        <h1>Reserve seu horário</h1>
+        <p>Preencha seus dados, escolha o serviço e o horário. Sem cadastro obrigatório para agendar.</p>
+    </div>
+
+    <form id="agendamentoForm" class="agendamento-form glass-card">
+        <fieldset class="mb-4 form-step">
+            <legend>1. Seus dados</legend>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="nomeCliente">Nome</label>
+                    <input id="nomeCliente" name="nomeCliente" class="form-control" required maxlength="100" placeholder="Seu nome" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="numeroTelefoneCliente">Telefone</label>
+                    <input id="numeroTelefoneCliente" name="numeroTelefoneCliente" class="form-control" required maxlength="20" placeholder="(55) 99999-9999" />
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="mb-4 form-step">
+            <legend>2. Serviço</legend>
+            <div id="servicosContainer" class="servicos-grid">
+                <p class="text-muted">Carregando serviços...</p>
+            </div>
+        </fieldset>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <fieldset class="h-100 form-step">
+                    <legend>3. Dia pretendido</legend>
+                    <input type="text" id="dataAgendamentoExibicao" class="form-control mb-3" readonly />
+                    <div id="calendarioAgendamento" class="calendar-inline"></div>
+                    <input type="hidden" id="dataAgendamento" name="dataAgendamento" required />
+                </fieldset>
+            </div>
+            <div class="col-md-6">
+                <fieldset class="h-100 form-step">
+                    <legend>4. Horários disponíveis</legend>
+                    <div id="horariosContainer" class="horarios-grid">
+                        <p class="text-muted">Selecione serviço e data para exibir horários.</p>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+
+        <fieldset class="mb-4 form-step">
+            <legend>5. Observação (opcional)</legend>
+            <textarea id="observacao" name="observacao" class="form-control" rows="3" maxlength="500" placeholder="Ex.: degradê na lateral, barba aparada..."></textarea>
+        </fieldset>
+
+        <input type="hidden" id="horarioSelecionado" name="horarioSelecionado" required />
+
+        <button type="submit" class="btn btn-primary btn-lg">Confirmar agendamento</button>
+        <p id="mensagemAgendamento" class="mt-3 mb-0"></p>
+    </form>
+</section>
+
+@section Scripts
+{
+    <script src="~/js/core/cookies.js" asp-append-version="true"></script>
+    <script src="~/js/core/requester.js" asp-append-version="true"></script>
+    <script src="~/js/services/agendamentoService.js" asp-append-version="true"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
+    <script src="~/js/pages/agendar.js" asp-append-version="true"></script>
+}
+

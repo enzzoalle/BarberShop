@@ -1,0 +1,66 @@
+﻿@page "/entrar"
+@model App.Web.Pages.EntrarModel
+@{
+    ViewData["Title"] = "Entrar";
+}
+
+<section class="auth-page">
+    <div class="auth-card glass-card">
+        <h1 class="mb-3">Entrar ou criar conta</h1>
+        <p class="text-muted mb-4">Use seu usuário para acessar. Não é permitido duplicar usuário nem telefone.</p>
+
+        <ul class="nav nav-pills mb-3" id="authTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="login-tab" data-bs-toggle="pill" data-bs-target="#login-pane" type="button" role="tab" aria-controls="login-pane" aria-selected="true">Entrar</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="cadastro-tab" data-bs-toggle="pill" data-bs-target="#cadastro-pane" type="button" role="tab" aria-controls="cadastro-pane" aria-selected="false">Criar conta</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="authTabsContent">
+            <div class="tab-pane fade show active" id="login-pane" role="tabpanel" aria-labelledby="login-tab">
+                <form id="loginForm" class="d-grid gap-3">
+                    <div>
+                        <label class="form-label" for="loginUsuario">Usuário</label>
+                        <input id="loginUsuario" class="form-control" required maxlength="100" />
+                    </div>
+                    <div>
+                        <label class="form-label" for="loginSenha">Senha</label>
+                        <input id="loginSenha" type="password" class="form-control" required maxlength="100" />
+                    </div>
+                    <button class="btn btn-primary" type="submit">Entrar</button>
+                </form>
+            </div>
+
+            <div class="tab-pane fade" id="cadastro-pane" role="tabpanel" aria-labelledby="cadastro-tab">
+                <form id="cadastroForm" class="d-grid gap-3">
+                    <div>
+                        <label class="form-label" for="cadastroUsuario">Usuário</label>
+                        <input id="cadastroUsuario" class="form-control" required maxlength="100" />
+                    </div>
+                    <div>
+                        <label class="form-label" for="cadastroTelefone">Telefone</label>
+                        <input id="cadastroTelefone" class="form-control" required maxlength="20" />
+                    </div>
+                    <div>
+                        <label class="form-label" for="cadastroSenha">Senha</label>
+                        <input id="cadastroSenha" type="password" class="form-control" required maxlength="100" />
+                    </div>
+                    <button class="btn btn-dark" type="submit">Criar conta</button>
+                </form>
+            </div>
+        </div>
+
+        <p id="mensagemAuth" class="mt-3 mb-0"></p>
+    </div>
+</section>
+
+@section Scripts
+{
+    <script src="~/js/core/cookies.js" asp-append-version="true"></script>
+    <script src="~/js/core/requester.js" asp-append-version="true"></script>
+    <script src="~/js/services/usuarioService.js" asp-append-version="true"></script>
+    <script src="~/js/pages/entrar.js" asp-append-version="true"></script>
+}
+

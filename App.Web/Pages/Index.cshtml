@@ -1,0 +1,71 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "BarberShop";
+}
+
+<section class="hero">
+    <img class="hero__image" src="~/images/hero-barber.jpg" alt="Cadeira clássica de barbearia sob luz quente." />
+    <div class="hero__overlay"></div>
+    <div class="hero__inner">
+        <span class="hero__tag">Agendamento online</span>
+        <h1 class="hero__title">O corte certo. No seu tempo.</h1>
+        <p class="hero__text">O lugar onde seu estilo é tratado como um verdadeiro monumento! Agende um horário conosco!</p>
+        <div class="hero__actions">
+            <a class="btn btn-primary btn-lg" asp-page="/Agendar">Agendar agora</a>
+            <a class="btn btn-outline-light btn-lg" href="#servicos">Ver serviços</a>
+        </div>
+    </div>
+</section>
+
+<section id="servicos" class="container section-block">
+    <div class="section-head text-center">
+        <span class="section-tag">Serviços</span>
+        <h2>Cuidado em cada detalhe</h2>
+        <p>Escolha entre os nossos serviços e agende em poucos cliques.</p>
+    </div>
+    <div id="homeServicosGrid" class="servicos-home-grid">
+        <p class="text-muted">Carregando serviços...</p>
+    </div>
+</section>
+
+<section id="horarios" class="section-block section-dark">
+    <div class="container">
+        <div class="section-head text-center">
+            <span class="section-tag">Disponibilidade</span>
+            <h2>Horários livres da semana</h2>
+            <p>Confira os horários disponíveis e reserve o seu.</p>
+        </div>
+        <div id="homeHorariosGrid" class="horarios-semana-grid">
+            <p class="text-muted">Carregando disponibilidade...</p>
+        </div>
+        <div class="text-center mt-4">
+            <a class="btn btn-primary btn-lg" asp-page="/Agendar">Reservar meu horário</a>
+        </div>
+    </div>
+</section>
+
+<section class="container section-block">
+    <div class="info-grid">
+        <article class="soft-card">
+            <h3>Localização</h3>
+            <p>Rua Genérica, Bairro Centro, Sua Cidade/RS</p>
+        </article>
+        <article class="soft-card">
+            <h3>Horários</h3>
+            <p>Segunda a Sexta: 09h às 19h<br />Sábado: 09h às 17h</p>
+        </article>
+        <article class="soft-card">
+            <h3>Contato</h3>
+            <p>(55) 99999-9999</p>
+        </article>
+    </div>
+</section>
+
+@section Scripts
+{
+    <script src="~/js/core/cookies.js" asp-append-version="true"></script>
+    <script src="~/js/core/requester.js" asp-append-version="true"></script>
+    <script src="~/js/services/agendamentoService.js" asp-append-version="true"></script>
+    <script src="~/js/pages/index.js" asp-append-version="true"></script>
+}

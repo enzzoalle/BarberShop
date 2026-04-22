@@ -1,0 +1,17 @@
+﻿a.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.6px;
+}
+
+.nav-link {
+  color: #d8d8d8 !important;
+}
+
+.nav-link:hover {
+  color: #ffffff !important;
+}
+
+.footer {
+  width: 100%;
+  line-height: 1.5;
+}
