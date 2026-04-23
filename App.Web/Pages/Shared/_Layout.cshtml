@@ -9,14 +9,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="icon" type="image/x-icon" href="~/images/favicon.ico" asp-append-version="true"/>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
-    <link rel="stylesheet" href="~/App.Web.styles.css" asp-append-version="true"/>
 </head>
 <body>
 <header>
     <nav class="navbar navbar-expand-lg navbar-dark navbar-modern">
         <div class="container">
-            <a class="navbar-brand" asp-area="" asp-page="/Index">BarberShop</a>
+            <a class="navbar-brand navbar-brand-modern" asp-area="" asp-page="/Index">
+                <img src="~/images/logo-sphinx.png" asp-append-version="true" alt="Ícone BarberShop" class="navbar-brand-icon"/>
+                <span>BarberShop</span>
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                     aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -25,6 +28,9 @@
                 <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" asp-area="" asp-page="/Index">Início</a>
+                    </li>
+                    <li class="nav-item d-none" id="navPainelAdminItem">
+                        <a class="nav-link" id="navPainelAdminLink" asp-area="" asp-page="/Admin/Index">Painel Admin</a>
                     </li>
                 </ul>
 
@@ -39,7 +45,7 @@
     </nav>
 </header>
 <main role="main" class="pb-4">
-        @RenderBody()
+    @RenderBody()
 </main>
 
 <footer class="footer text-light">

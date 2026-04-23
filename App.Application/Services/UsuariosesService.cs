@@ -72,7 +72,7 @@ public class UsuariosesService : IUsuariosService
         var senhaHash = Criptografia.GeraHash(request.Senha.Trim());
 
         var usuario = _usuarioRepository
-            .Query(x => x.Nome.Equals(usuarioNormalizado, StringComparison.CurrentCultureIgnoreCase) && x.Senha == senhaHash)
+            .Query(x => x.Nome.ToLower() == usuarioNormalizado.ToLower() && x.Senha == senhaHash)
             .FirstOrDefault();
 
         if (usuario is null)

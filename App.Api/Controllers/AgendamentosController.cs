@@ -34,7 +34,7 @@ public class AgendamentosController : ControllerBase
         try
         {
             _agendamentosService.Incluir(request);
-            return Ok("Agendamentos realizado com sucesso!");
+            return Ok("Solicitação de agendamento enviada com sucesso!");
         }
         catch (InvalidOperationException ex)
         {
@@ -49,6 +49,20 @@ public class AgendamentosController : ControllerBase
         {
             _agendamentosService.IncluirManual(request);
             return Ok("Agendamentos manual realizado com sucesso!");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("AprovarSolicitacao")]
+    public IActionResult AprovarSolicitacao(int id)
+    {
+        try
+        {
+            var linkWhatsapp = _agendamentosService.AprovarSolicitacao(id);
+            return Redirect(linkWhatsapp);
         }
         catch (InvalidOperationException ex)
         {

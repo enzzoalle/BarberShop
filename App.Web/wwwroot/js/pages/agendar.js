@@ -174,7 +174,7 @@ async function confirmarAgendamento() {
 
     try {
         await Agendamentos_Incluir(payload);
-        $('#mensagemAgendamento').text('Agendamento realizado com sucesso!').removeClass('text-danger').addClass('text-success');
+        $('#mensagemAgendamento').text('Solicitação enviada com sucesso! Aguarde a aprovação do administrador.').removeClass('text-danger').addClass('text-success');
         $('#agendamentoForm')[0].reset();
         $('#horariosContainer').html('<p class="text-muted">Selecione serviço e data para exibir horários.</p>');
         $('#servicosContainer input[type="radio"]').prop('checked', false);
@@ -184,7 +184,7 @@ async function confirmarAgendamento() {
         preencherDataPadrao();
     } catch (erro) {
         console.error(erro);
-        $('#mensagemAgendamento').text('Não foi possível concluir seu agendamento. Tente novamente.').removeClass('text-success').addClass('text-danger');
+        $('#mensagemAgendamento').text('Não foi possível enviar sua solicitação. Tente novamente.').removeClass('text-success').addClass('text-danger');
     }
 }
 

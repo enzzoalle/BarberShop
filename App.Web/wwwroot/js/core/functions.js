@@ -1,5 +1,23 @@
 ﻿function parseDate(input) {
-    const data = input instanceof Date ? new Date(input) : new Date(input);
+    if (input instanceof Date) {
+        const dataCopia = new Date(input);
+        return Number.isNaN(dataCopia.getTime()) ? null : dataCopia;
+    }
+
+    if (typeof input === 'string') {
+        const valor = input.trim();
+        const correspondeDataSemFuso = /^\d{4}-\d{2}-\d{2}$/.test(valor);
+        if (correspondeDataSemFuso) {
+            const partes = valor.split('-');
+            const ano = Number(partes[0]);
+            const mes = Number(partes[1]) - 1;
+            const dia = Number(partes[2]);
+            const dataLocal = new Date(ano, mes, dia, 0, 0, 0, 0);
+            return Number.isNaN(dataLocal.getTime()) ? null : dataLocal;
+        }
+    }
+
+    const data = new Date(input);
     return Number.isNaN(data.getTime()) ? null : data;
 }
 
@@ -159,11 +177,13 @@ function atualizarEstadoAuthLayout() {
     const $entrar = $('#btnEntrar');
     const $sair = $('#btnSair');
     const $welcome = $('#authWelcome');
+    const $painelAdmin = $('#navPainelAdminItem');
 
     if (!usuario) {
         $entrar.removeClass('d-none').attr('aria-hidden', 'false');
         $sair.addClass('d-none');
         $welcome.addClass('d-none').text('');
+        $painelAdmin.addClass('d-none');
         return;
     }
 
@@ -171,6 +191,12 @@ function atualizarEstadoAuthLayout() {
     $welcome.text(`Olá, ${nome}`).removeClass('d-none');
     $entrar.addClass('d-none').attr('aria-hidden', 'true');
     $sair.removeClass('d-none');
+
+    if (isUsuarioAdmin(usuario)) {
+        $painelAdmin.removeClass('d-none');
+    } else {
+        $painelAdmin.addClass('d-none');
+    }
 }
 
 $(document).ready(function () {

@@ -9,4 +9,5 @@ public interface IAgendamentosService
     IEnumerable<string> ListarHorariosDisponiveis(DateTime data, int servicoId);
     void Incluir(CriarAgendamentoRequest request);
     void IncluirManual(CriarAgendamentoManualRequest request);
+    string AprovarSolicitacao(int id);
 }

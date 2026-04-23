@@ -64,6 +64,53 @@
                         </article>
                     </div>
                 </div>
+                
+                <div class="glass-card mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+                        <h5 class="mb-0">Solicitações pendentes</h5>
+                        <small class="text-muted">Aprove para confirmar com o cliente via WhatsApp</small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-admin table-striped align-middle mb-0">
+                            <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Cliente</th>
+                                <th>Telefone</th>
+                                <th>Serviço</th>
+                                <th>Ação</th>
+                            </tr>
+                            </thead>
+                            <tbody id="adminSolicitacoesBody">
+                            <tr><td colspan="6" class="text-muted">Carregando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+                        <h5 class="mb-0">Agenda e próximos clientes</h5>
+                        <input id="filtroDataAgenda" type="date" class="form-control form-control-sm admin-date-filter" />
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-admin table-striped align-middle mb-0">
+                            <thead>
+                            <tr>
+                                <th>Horário</th>
+                                <th>Cliente</th>
+                                <th>Telefone</th>
+                                <th>Serviço</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody id="adminAgendaBody">
+                            <tr><td colspan="5" class="text-muted">Selecione uma data para carregar os agendamentos.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
                 <div class="row g-3 mb-4">
                     <div class="col-12 col-lg-5">
@@ -100,7 +147,7 @@
                                 <h5 class="mb-0">Serviços cadastrados</h5>
                             </div>
                             <div class="table-responsive">
-                                <table class="table table-dark table-hover align-middle mb-0">
+                                <table class="table table-admin table-hover align-middle mb-0">
                                     <thead>
                                     <tr>
                                         <th>Serviço</th>
@@ -118,28 +165,7 @@
                     </div>
                 </div>
 
-                <div class="glass-card">
-                    <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
-                        <h5 class="mb-0">Agenda e próximos clientes</h5>
-                        <input id="filtroDataAgenda" type="date" class="form-control form-control-sm admin-date-filter" />
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-dark table-striped align-middle mb-0">
-                            <thead>
-                            <tr>
-                                <th>Horário</th>
-                                <th>Cliente</th>
-                                <th>Telefone</th>
-                                <th>Serviço</th>
-                                <th>Status</th>
-                            </tr>
-                            </thead>
-                            <tbody id="adminAgendaBody">
-                            <tr><td colspan="5" class="text-muted">Selecione uma data para carregar os agendamentos.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                
             </div>
 
             <div class="tab-pane fade" id="painel-manual" role="tabpanel" aria-labelledby="tab-manual" tabindex="0">
@@ -220,8 +246,6 @@
                 </div>
             </div>
         </div>
-
-        <p class="mb-0 text-muted">Acesso administrativo validado com sucesso.</p>
     </div>
 </section>
 

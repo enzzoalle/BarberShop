@@ -123,12 +123,50 @@ public class AgendamentosService : IAgendamentosService
             DataAgendamento = request.DataAgendamento,
             HorarioAgendamento = request.HorarioAgendamento,
             Observacao = request.Observacao
-        });
+        }, aprovarAutomaticamente: false);
     }
 
     public void IncluirManual(CriarAgendamentoManualRequest request)
     {
-        IncluirInterno(request);
+        IncluirInterno(request, aprovarAutomaticamente: true);
+    }
+
+    public string AprovarSolicitacao(int id)
+    {
+        var dados = _agendamentoRepository
+            .Query(x => x.Id == id)
+            .Select(x => new
+            {
+                x.Id,
+                x.StatusAgendamento,
+                x.DataAgendamento,
+                x.HorarioAgendamento,
+                NomeCliente = x.Clientes.Nome,
+                NumeroTelefoneCliente = x.Clientes.NumeroTelefone,
+                NomeServico = x.Servicos.Nome
+            })
+            .FirstOrDefault();
+
+        if (dados is null)
+        {
+            throw new InvalidOperationException("Solicitação de agendamento não encontrada.");
+        }
+
+        var telefone = NormalizarTelefone(dados.NumeroTelefoneCliente);
+        if (string.IsNullOrWhiteSpace(telefone))
+        {
+            throw new InvalidOperationException("Este cliente não possui telefone para envio no WhatsApp.");
+        }
+
+        if (dados.StatusAgendamento != StatusAgendamentoEnum.Aprovado)
+        {
+            var agendamento = _agendamentoRepository.FindById(id);
+            agendamento.StatusAgendamento = StatusAgendamentoEnum.Aprovado;
+            _agendamentoRepository.Update(agendamento);
+        }
+
+        var mensagem = MontarMensagemConfirmacao(dados.NomeCliente, dados.NomeServico, dados.DataAgendamento, dados.HorarioAgendamento);
+        return $"https://wa.me/{telefone}?text={Uri.EscapeDataString(mensagem)}";
     }
 
     private (TimeSpan Abertura, TimeSpan Fechamento, DiasFuncionamentoEnum DiasFuncionamento) ObterExpediente()
@@ -156,7 +194,7 @@ public class AgendamentosService : IAgendamentosService
         };
     }
 
-    private void IncluirInterno(CriarAgendamentoManualRequest request)
+    private void IncluirInterno(CriarAgendamentoManualRequest request, bool aprovarAutomaticamente)
     {
         if (string.IsNullOrWhiteSpace(request.NomeCliente))
         {
@@ -213,7 +251,7 @@ public class AgendamentosService : IAgendamentosService
             DataAgendamento = request.DataAgendamento.Date,
             HorarioAgendamento = request.HorarioAgendamento,
             Observacao = string.IsNullOrWhiteSpace(request.Observacao) ? null : request.Observacao.Trim(),
-            StatusAgendamento = StatusAgendamentoEnum.Pendente,
+            StatusAgendamento = aprovarAutomaticamente ? StatusAgendamentoEnum.Aprovado : StatusAgendamentoEnum.Pendente,
             FoiPago = false,
             DataCriacao = DateTime.Now
         };
@@ -237,5 +275,15 @@ public class AgendamentosService : IAgendamentosService
 
         var numeros = new string(numeroTelefone.Where(char.IsDigit).ToArray());
         return string.IsNullOrWhiteSpace(numeros) ? null : numeros;
+    }
+
+    private static string MontarMensagemConfirmacao(string nomeCliente, string nomeServico, DateTime dataAgendamento, TimeSpan horarioAgendamento)
+    {
+        var nome = string.IsNullOrWhiteSpace(nomeCliente) ? "cliente" : nomeCliente.Trim();
+        var servico = string.IsNullOrWhiteSpace(nomeServico) ? "serviço" : nomeServico.Trim();
+        var data = dataAgendamento.ToString("dd/MM/yyyy");
+        var horario = horarioAgendamento.ToString(@"hh\:mm");
+
+        return $"Olá, {nome}! Sua solicitação foi aprovada. Seu horário para {servico} foi confirmado para {data} às {horario}.";
     }
 }

@@ -1,6 +1,7 @@
 ﻿let adminAutoRefreshId = null;
 let manualServicos = [];
 let datasFolga = [];
+const aprovacoesEmAndamento = new Set();
 
 $(document).ready(function () {
     applyPhoneMask('#manualTelefoneCliente');
@@ -103,6 +104,7 @@ function exibirLogin() {
 async function carregarPainel() {
     await carregarServicosAdmin();
     await carregarServicosParaManual();
+    await carregarSolicitacoesPendentes();
     await carregarAgendaDoDia();
     await carregarParametros();
 }
@@ -116,7 +118,9 @@ function iniciarAutoRefreshAdmin() {
 
         await carregarServicosAdmin();
         await carregarServicosParaManual();
+        await carregarSolicitacoesPendentes();
         await carregarAgendaDoDia();
+        await carregarParametros();
     }, 12000);
 }
 
@@ -152,9 +156,7 @@ async function cadastrarServico() {
         exibirMensagemServico(mensagem || 'Serviço cadastrado com sucesso.', true);
         $('#novoServicoForm')[0].reset();
         $('#servicoDuracao').val('30');
-        await carregarServicosAdmin();
-        await carregarServicosParaManual();
-        await carregarAgendaDoDia();
+        await atualizarPainelAposAlteracao();
     } catch (erro) {
         exibirMensagemServico(erro.responseText || 'Não foi possível cadastrar o serviço.', false);
     }
@@ -198,12 +200,74 @@ async function carregarServicosAdmin() {
         $('[data-servico-status-id]').off('click').on('click', async function () {
             const id = Number($(this).data('servico-status-id'));
             const ativoAtual = String($(this).data('ativo')).toLowerCase() === 'true';
-            await Servicos_AlterarStatus(id, !ativoAtual);
-            await carregarServicosAdmin();
-            await carregarServicosParaManual();
+            try {
+                await Servicos_AlterarStatus(id, !ativoAtual);
+                await atualizarPainelAposAlteracao();
+            } catch (erro) {
+                exibirMensagemServico(erro.responseText || 'Não foi possível alterar o status do serviço.', false);
+            }
         });
     } catch (erro) {
         body.html('<tr><td colspan="4" class="text-danger">Erro ao carregar serviços.</td></tr>');
+    }
+}
+
+async function carregarSolicitacoesPendentes() {
+    const body = $('#adminSolicitacoesBody');
+    body.html('<tr><td colspan="6" class="text-muted">Carregando...</td></tr>');
+
+    try {
+        const agendamentos = await Agendamentos_Listar();
+        const pendentes = (agendamentos || [])
+            .filter(function (item) {
+                return Number(item.statusAgendamento ?? item.StatusAgendamento) === 1;
+            })
+            .sort(function (a, b) {
+                const dataA = (a.dataAgendamento || a.DataAgendamento || '').slice(0, 10);
+                const dataB = (b.dataAgendamento || b.DataAgendamento || '').slice(0, 10);
+                const comparacaoData = dataA.localeCompare(dataB);
+                if (comparacaoData !== 0) {
+                    return comparacaoData;
+                }
+
+                const horarioA = formatarHorario(a.horarioAgendamento || a.HorarioAgendamento);
+                const horarioB = formatarHorario(b.horarioAgendamento || b.HorarioAgendamento);
+                return horarioA.localeCompare(horarioB);
+            });
+
+        if (pendentes.length === 0) {
+            body.html('<tr><td colspan="6" class="text-muted">Nenhuma solicitação pendente.</td></tr>');
+            return;
+        }
+
+        body.empty();
+        pendentes.forEach(function (item) {
+            const id = item.id || item.Id;
+            const data = (item.dataAgendamento || item.DataAgendamento || '').slice(0, 10);
+            const horario = formatarHorario(item.horarioAgendamento || item.HorarioAgendamento);
+            const cliente = item.clientes || item.Clientes || item.cliente || item.Cliente || {};
+            const servico = item.servicos || item.Servicos || item.servico || item.Servico || {};
+
+            body.append(`
+                <tr>
+                    <td>${formatDateBr(data)}</td>
+                    <td>${horario}</td>
+                    <td>${cliente.nome || cliente.Nome || '-'}</td>
+                    <td>${cliente.numeroTelefone || cliente.NumeroTelefone || '-'}</td>
+                    <td>${servico.nome || servico.Nome || '-'}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-success" data-aprovar-solicitacao-id="${id}">Aprovar solicitação</button>
+                    </td>
+                </tr>
+            `);
+        });
+
+        $('[data-aprovar-solicitacao-id]').off('click').on('click', async function () {
+            const id = Number($(this).data('aprovar-solicitacao-id'));
+            await abrirAprovacaoSolicitacao(id, $(this));
+        });
+    } catch (erro) {
+        body.html('<tr><td colspan="6" class="text-danger">Erro ao carregar solicitações pendentes.</td></tr>');
     }
 }
 
@@ -263,15 +327,16 @@ async function carregarAgendaDoDia() {
             })
             .forEach(function (item) {
                 const cliente = item.cliente || item.Cliente || {};
-                const servico = item.servico || item.Servico || {};
+                const clienteNormalizado = item.clientes || item.Clientes || cliente;
+                const servico = item.servicos || item.Servicos || item.servico || item.Servico || {};
                 const horario = formatarHorario(item.horarioAgendamento || item.HorarioAgendamento);
                 const status = formatarStatus(item.statusAgendamento || item.StatusAgendamento);
 
                 body.append(`
                     <tr>
                         <td>${horario}</td>
-                        <td>${cliente.nome || cliente.Nome || '-'}</td>
-                        <td>${cliente.numeroTelefone || cliente.NumeroTelefone || '-'}</td>
+                        <td>${clienteNormalizado.nome || clienteNormalizado.Nome || '-'}</td>
+                        <td>${clienteNormalizado.numeroTelefone || clienteNormalizado.NumeroTelefone || '-'}</td>
                         <td>${servico.nome || servico.Nome || '-'}</td>
                         <td>${status}</td>
                     </tr>
@@ -342,7 +407,7 @@ async function criarAgendamentoManual() {
     };
 
     if (!payload.nomeCliente || !payload.servicoId || !payload.dataAgendamento || !payload.horarioAgendamento) {
-        exibirMensagemManual('Preencha nome, data, servico e horario.', false);
+        exibirMensagemManual('Preencha nome, data, serviço e horário.', false);
         return;
     }
 
@@ -351,8 +416,7 @@ async function criarAgendamentoManual() {
         exibirMensagemManual('Agendamento manual salvo com sucesso.', true);
         $('#agendamentoManualForm')[0].reset();
         $('#manualData').val(formatDateIso(new Date()));
-        await carregarHorariosManual();
-        await carregarAgendaDoDia();
+        await atualizarPainelAposAlteracao();
     } catch (erro) {
         exibirMensagemManual(erro.responseText || 'Não foi possível salvar o agendamento manual.', false);
     }
@@ -438,11 +502,46 @@ async function salvarParametros() {
     try {
         await Parametros_Salvar(payload);
         exibirMensagemParametros('Parâmetros salvos com sucesso.', true);
-        await carregarParametros();
-        await carregarHorariosManual();
+        await atualizarPainelAposAlteracao();
     } catch (erro) {
-        exibirMensagemParametros(erro.responseText || 'Nao foi possível salvar os parâmetros.', false);
+        exibirMensagemParametros(erro.responseText || 'Não foi possível salvar os parâmetros.', false);
     }
+}
+
+async function abrirAprovacaoSolicitacao(id, $botao) {
+    if (aprovacoesEmAndamento.has(id)) {
+        return;
+    }
+
+    aprovacoesEmAndamento.add(id);
+    if ($botao && $botao.length) {
+        $botao.prop('disabled', true).text('Aprovando...');
+    }
+
+    const urlAprovacao = ResolveUrl(`Agendamentos/AprovarSolicitacao?id=${id}`);
+
+    const novaAba = window.open(urlAprovacao, '_blank');
+
+    if (!novaAba) {
+        aprovacoesEmAndamento.delete(id);
+        if ($botao && $botao.length) {
+            $botao.prop('disabled', false).text('Aprovar solicitação');
+        }
+        exibirMensagemAdmin('Permita pop-ups para abrir o WhatsApp e concluir a aprovação.', false);
+        return;
+    }
+
+    window.setTimeout(async function () {
+        try {
+            await atualizarPainelAposAlteracao();
+        } finally {
+            aprovacoesEmAndamento.delete(id);
+        }
+    }, 1200);
+}
+
+async function atualizarPainelAposAlteracao() {
+    await carregarPainel();
 }
 
 function prepararDatasPadrao() {
