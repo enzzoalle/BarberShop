@@ -27,7 +27,9 @@ function configurarEventos() {
 }
 
 function inicializarCalendario() {
-    if (!window.flatpickr) return;
+    if (!window.flatpickr) {
+        return;
+    }
 
     calendarioInstancia = flatpickr('#calendarioAgendamento', {
         locale: 'pt',
@@ -55,7 +57,9 @@ function preencherDataPadrao() {
 }
 
 async function carregarParametrosAgendamento() {
-    if (typeof Parametros_Obter !== 'function') return;
+    if (typeof Parametros_Obter !== 'function') {
+        return;
+    }
 
     try {
         const parametros = await Parametros_Obter();

@@ -75,7 +75,7 @@ public class AgendamentosService : IAgendamentosService
 
             if (!conflita)
             {
-                horariosDisponiveis.Add(horarioAtual.ToString(@"HH\:mm"));
+                horariosDisponiveis.Add(horarioAtual.ToString(@"hh\:mm"));
             }
 
             horarioAtual += IntervaloMinimoEntreHorarios;
@@ -180,7 +180,7 @@ public class AgendamentosService : IAgendamentosService
 
         var servico = _servicoRepository.FindById(requestDto.ServicoId);
 
-        var horarioSolicitado = requestDto.HorarioAgendamento.ToString(@"HH\:mm");
+        var horarioSolicitado = requestDto.HorarioAgendamento.ToString(@"hh\:mm");
         var horariosDisponiveis = ListarHorariosDisponiveis(requestDto.DataAgendamento, requestDto.ServicoId);
 
         if (!horariosDisponiveis.Contains(horarioSolicitado))
@@ -254,7 +254,7 @@ public class AgendamentosService : IAgendamentosService
         var nome = string.IsNullOrWhiteSpace(nomeCliente) ? "cliente" : nomeCliente.Trim();
         var servico = string.IsNullOrWhiteSpace(nomeServico) ? "serviço" : nomeServico.Trim();
         var data = dataAgendamento.ToString("dd/MM/yyyy");
-        var horario = horarioAgendamento.ToString(@"HH\:mm");
+        var horario = horarioAgendamento.ToString(@"hh\:mm");
 
         return $"Olá, {nome}! Sua solicitação foi aprovada. Seu horário para {servico} foi confirmado para {data} às {horario}.";
     }
