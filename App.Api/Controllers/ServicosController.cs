@@ -1,5 +1,5 @@
-﻿using App.Domain.Interfaces;
-using App.Domain.Entities;
+﻿using App.Domain.DTO;
+using App.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace App.Api.Controllers;
@@ -29,11 +29,11 @@ public class ServicosController : ControllerBase
     }
 
     [HttpPost("Incluir")]
-    public IActionResult Incluir([FromBody] Servicos servicos)
+    public IActionResult Incluir([FromBody] CriarServicoRequestDTO request)
     {
         try
         {
-            _servicosService.Incluir(servicos);
+            _servicosService.Incluir(request);
             return Ok("Serviço cadastrado com sucesso.");
         }
         catch (InvalidOperationException ex)
@@ -43,9 +43,16 @@ public class ServicosController : ControllerBase
     }
 
     [HttpPost("AlterarStatus")]
-    public IActionResult AlterarStatus(int id, bool ativo)
+    public IActionResult AlterarStatus([FromQuery] int id, [FromQuery] bool ativo)
     {
-        _servicosService.AlterarStatus(id, ativo);
-        return Ok("Status do serviço atualizado.");
+        try
+        {
+            _servicosService.AlterarStatus(id, ativo);
+            return Ok("Status do serviço atualizado.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }

@@ -3,6 +3,8 @@ using App.Domain.Entities;
 using App.Domain.Enums;
 using App.Domain.Interfaces;
 using App.Domain.Interfaces.Repository;
+using App.Common;
+using Microsoft.EntityFrameworkCore;
 
 namespace App.Application.Services;
 
@@ -36,33 +38,8 @@ public class AgendamentosService : IAgendamentosService
     {
         return _agendamentoRepository
             .Query(x => true)
-            .Select(x => new Agendamentos
-            {
-                Id = x.Id,
-                DataAgendamento = x.DataAgendamento,
-                HorarioAgendamento = x.HorarioAgendamento,
-                Observacao = x.Observacao,
-                StatusAgendamento = x.StatusAgendamento,
-                FoiPago = x.FoiPago,
-                DataCriacao = x.DataCriacao,
-                Clientes = new Clientes
-                {
-                    Id = x.Clientes.Id,
-                    Nome = x.Clientes.Nome,
-                    NumeroTelefone = x.Clientes.NumeroTelefone,
-                    DataCriacao = x.Clientes.DataCriacao,
-                    UsuarioId = x.Clientes.UsuarioId
-                },
-                Servicos = new Servicos
-                {
-                    Id = x.Servicos.Id,
-                    Nome = x.Servicos.Nome,
-                    Duracao = x.Servicos.Duracao,
-                    Valor = x.Servicos.Valor,
-                    Ativo = x.Servicos.Ativo,
-                    DataCriacao = x.Servicos.DataCriacao
-                }
-            })
+            .Include(x => x.Clientes)
+            .Include(x => x.Servicos)
             .OrderByDescending(x => x.DataAgendamento)
             .ThenBy(x => x.HorarioAgendamento)
             .ToList();
@@ -81,12 +58,9 @@ public class AgendamentosService : IAgendamentosService
         var dataSelecionada = data.Date;
 
         var agendamentosDoDia = _agendamentoRepository
-            .Query(x => x.DataAgendamento.Date == dataSelecionada && x.StatusAgendamento != StatusAgendamentoEnum.Cancelado)
-            .Select(x => new
-            {
-                Inicio = x.HorarioAgendamento,
-                Duracao = x.Servicos.Duracao
-            })
+            .Query(x => x.DataAgendamento.Date == dataSelecionada
+                        && x.StatusAgendamento != StatusAgendamentoEnum.Cancelado)
+            .Select(x => new { Inicio = x.HorarioAgendamento, x.Servicos.Duracao })
             .ToList();
 
         var horariosDisponiveis = new List<string>();
@@ -95,11 +69,13 @@ public class AgendamentosService : IAgendamentosService
         while (horarioAtual + servico.Duracao <= expediente.Fechamento)
         {
             var horarioFinal = horarioAtual + servico.Duracao;
-            var conflitaComAgendamento = agendamentosDoDia.Any(x => horarioAtual < x.Inicio + x.Duracao && horarioFinal > x.Inicio);
 
-            if (!conflitaComAgendamento)
+            var conflita = agendamentosDoDia
+                .Any(x => horarioAtual < x.Inicio + x.Duracao && horarioFinal > x.Inicio);
+
+            if (!conflita)
             {
-                horariosDisponiveis.Add(horarioAtual.ToString(@"hh\:mm"));
+                horariosDisponiveis.Add(horarioAtual.ToString(@"HH\:mm"));
             }
 
             horarioAtual += IntervaloMinimoEntreHorarios;
@@ -115,7 +91,7 @@ public class AgendamentosService : IAgendamentosService
             throw new InvalidOperationException("Informe o telefone do cliente.");
         }
 
-        IncluirInterno(new CriarAgendamentoManualRequest
+        IncluirInterno(new CriarAgendamentoManualRequestDTO
         {
             NomeCliente = request.NomeCliente,
             NumeroTelefoneCliente = request.NumeroTelefoneCliente,
@@ -126,10 +102,8 @@ public class AgendamentosService : IAgendamentosService
         }, aprovarAutomaticamente: false);
     }
 
-    public void IncluirManual(CriarAgendamentoManualRequest request)
-    {
-        IncluirInterno(request, aprovarAutomaticamente: true);
-    }
+    public void IncluirManual(CriarAgendamentoManualRequestDTO requestDto)
+        => IncluirInterno(requestDto, aprovarAutomaticamente: true);
 
     public string AprovarSolicitacao(int id)
     {
@@ -145,14 +119,9 @@ public class AgendamentosService : IAgendamentosService
                 NumeroTelefoneCliente = x.Clientes.NumeroTelefone,
                 NomeServico = x.Servicos.Nome
             })
-            .FirstOrDefault();
+            .FirstOrDefault() ?? throw new InvalidOperationException("Solicitação de agendamento não encontrada.");
 
-        if (dados is null)
-        {
-            throw new InvalidOperationException("Solicitação de agendamento não encontrada.");
-        }
-
-        var telefone = NormalizarTelefone(dados.NumeroTelefoneCliente);
+        var telefone = TelefoneHelper.Normalizar(dados.NumeroTelefoneCliente);
         if (string.IsNullOrWhiteSpace(telefone))
         {
             throw new InvalidOperationException("Este cliente não possui telefone para envio no WhatsApp.");
@@ -165,92 +134,71 @@ public class AgendamentosService : IAgendamentosService
             _agendamentoRepository.Update(agendamento);
         }
 
-        var mensagem = MontarMensagemConfirmacao(dados.NomeCliente, dados.NomeServico, dados.DataAgendamento, dados.HorarioAgendamento);
+        var mensagem = MontarMensagemConfirmacao(
+            dados.NomeCliente, dados.NomeServico, dados.DataAgendamento, dados.HorarioAgendamento);
+
         return $"https://wa.me/{telefone}?text={Uri.EscapeDataString(mensagem)}";
     }
 
     private (TimeSpan Abertura, TimeSpan Fechamento, DiasFuncionamentoEnum DiasFuncionamento) ObterExpediente()
     {
-        var parametros = _parametrosRepository.GetAll().FirstOrDefault();
-        if (parametros is null)
-        {
-            return (HorarioAberturaPadrao, HorarioFechamentoPadrao, DiasFuncionamentoEnum.AteSabado);
-        }
+        var parametros = _parametrosRepository
+            .Query(x => true)
+            .Select(x => new
+            {
+                x.HorarioAbertura,
+                x.HorarioFechamento,
+                x.DiasFuncionamento
+            })
+            .FirstOrDefault();
 
-        return (
-            parametros.HorarioAbertura,
-            parametros.HorarioFechamento ?? HorarioFechamentoPadrao,
-            parametros.DiasFuncionamento);
+        return parametros is null
+            ? (HorarioAberturaPadrao, HorarioFechamentoPadrao, DiasFuncionamentoEnum.AteSabado)
+            : (parametros.HorarioAbertura, parametros.HorarioFechamento ?? HorarioFechamentoPadrao, parametros.DiasFuncionamento);
     }
 
     private static bool DiaDisponivelParaAgendamento(DateTime data, DiasFuncionamentoEnum diasFuncionamento)
-    {
-        return diasFuncionamento switch
+        => diasFuncionamento switch
         {
             DiasFuncionamentoEnum.DiasUteis => data.DayOfWeek is not DayOfWeek.Saturday and not DayOfWeek.Sunday,
             DiasFuncionamentoEnum.AteSabado => data.DayOfWeek is not DayOfWeek.Sunday,
             DiasFuncionamentoEnum.TodoDia => true,
             _ => false
         };
-    }
 
-    private void IncluirInterno(CriarAgendamentoManualRequest request, bool aprovarAutomaticamente)
+    private void IncluirInterno(CriarAgendamentoManualRequestDTO requestDto, bool aprovarAutomaticamente)
     {
-        if (string.IsNullOrWhiteSpace(request.NomeCliente))
+        if (string.IsNullOrWhiteSpace(requestDto.NomeCliente))
         {
             throw new InvalidOperationException("Informe o nome do cliente.");
         }
 
-        if (DataEstaBloqueada(request.DataAgendamento))
+        if (DataEstaBloqueada(requestDto.DataAgendamento))
         {
             throw new InvalidOperationException("A data selecionada está bloqueada por folga ou feriado.");
         }
 
-        var servico = _servicoRepository.FindById(request.ServicoId);
-        var horariosDisponiveis = ListarHorariosDisponiveis(request.DataAgendamento, request.ServicoId);
-        var horarioSolicitado = request.HorarioAgendamento.ToString(@"hh\:mm");
+        var servico = _servicoRepository.FindById(requestDto.ServicoId);
+
+        var horarioSolicitado = requestDto.HorarioAgendamento.ToString(@"HH\:mm");
+        var horariosDisponiveis = ListarHorariosDisponiveis(requestDto.DataAgendamento, requestDto.ServicoId);
 
         if (!horariosDisponiveis.Contains(horarioSolicitado))
         {
             throw new InvalidOperationException("O horário selecionado não está mais disponível.");
         }
 
-        var numeroTelefone = NormalizarTelefone(request.NumeroTelefoneCliente);
+        var numeroTelefone = TelefoneHelper.Normalizar(requestDto.NumeroTelefoneCliente);
 
-        Clientes? clienteExistente = null;
-        if (!string.IsNullOrWhiteSpace(numeroTelefone))
-        {
-            clienteExistente = _clienteRepository
-                .Query(x => x.NumeroTelefone == numeroTelefone)
-                .OrderByDescending(x => x.DataCriacao)
-                .FirstOrDefault();
-        }
-
-        if (clienteExistente is null)
-        {
-            clienteExistente = new Clientes
-            {
-                Nome = request.NomeCliente.Trim(),
-                NumeroTelefone = numeroTelefone,
-                DataCriacao = DateTime.Now
-            };
-
-            _clienteRepository.Insert(clienteExistente);
-        }
-        else
-        {
-            clienteExistente.Nome = request.NomeCliente.Trim();
-            clienteExistente.NumeroTelefone = numeroTelefone;
-            _clienteRepository.Update(clienteExistente);
-        }
+        var cliente = BuscarOuCriarCliente(requestDto.NomeCliente, numeroTelefone);
 
         var novoAgendamento = new Agendamentos
         {
-            Clientes = clienteExistente,
+            Clientes = cliente,
             Servicos = servico,
-            DataAgendamento = request.DataAgendamento.Date,
-            HorarioAgendamento = request.HorarioAgendamento,
-            Observacao = string.IsNullOrWhiteSpace(request.Observacao) ? null : request.Observacao.Trim(),
+            DataAgendamento = requestDto.DataAgendamento.Date,
+            HorarioAgendamento = requestDto.HorarioAgendamento,
+            Observacao = string.IsNullOrWhiteSpace(requestDto.Observacao) ? null : requestDto.Observacao.Trim(),
             StatusAgendamento = aprovarAutomaticamente ? StatusAgendamentoEnum.Aprovado : StatusAgendamentoEnum.Pendente,
             FoiPago = false,
             DataCriacao = DateTime.Now
@@ -259,22 +207,46 @@ public class AgendamentosService : IAgendamentosService
         _agendamentoRepository.Insert(novoAgendamento);
     }
 
+    private Clientes BuscarOuCriarCliente(string nome, string? telefone)
+    {
+        Clientes? cliente = null;
+
+        if (!string.IsNullOrWhiteSpace(telefone))
+        {
+            cliente = _clienteRepository
+                .Query(x => x.NumeroTelefone == telefone)
+                .OrderByDescending(x => x.DataCriacao)
+                .FirstOrDefault();
+        }
+
+        if (cliente is null)
+        {
+            cliente = new Clientes
+            {
+                Nome = nome.Trim(),
+                NumeroTelefone = telefone,
+                DataCriacao = DateTime.Now
+            };
+            _clienteRepository.Insert(cliente);
+        }
+        else
+        {
+            cliente.Nome = nome.Trim();
+            cliente.NumeroTelefone = telefone;
+            _clienteRepository.Update(cliente);
+        }
+
+        return cliente;
+    }
+
     private bool DataEstaBloqueada(DateTime data)
     {
         var dataSelecionada = data.Date;
         var proximoDia = dataSelecionada.AddDays(1);
-        return _folgaFeriadoRepository.Query(x => x.Data >= dataSelecionada && x.Data < proximoDia).Any();
-    }
 
-    private static string? NormalizarTelefone(string? numeroTelefone)
-    {
-        if (string.IsNullOrWhiteSpace(numeroTelefone))
-        {
-            return null;
-        }
-
-        var numeros = new string(numeroTelefone.Where(char.IsDigit).ToArray());
-        return string.IsNullOrWhiteSpace(numeros) ? null : numeros;
+        return _folgaFeriadoRepository
+            .Query(x => x.Data >= dataSelecionada && x.Data < proximoDia)
+            .Any();
     }
 
     private static string MontarMensagemConfirmacao(string nomeCliente, string nomeServico, DateTime dataAgendamento, TimeSpan horarioAgendamento)
@@ -282,7 +254,7 @@ public class AgendamentosService : IAgendamentosService
         var nome = string.IsNullOrWhiteSpace(nomeCliente) ? "cliente" : nomeCliente.Trim();
         var servico = string.IsNullOrWhiteSpace(nomeServico) ? "serviço" : nomeServico.Trim();
         var data = dataAgendamento.ToString("dd/MM/yyyy");
-        var horario = horarioAgendamento.ToString(@"hh\:mm");
+        var horario = horarioAgendamento.ToString(@"HH\:mm");
 
         return $"Olá, {nome}! Sua solicitação foi aprovada. Seu horário para {servico} foi confirmado para {data} às {horario}.";
     }

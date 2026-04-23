@@ -1,14 +1,15 @@
-﻿using App.Domain.Entities;
+﻿using App.Domain.DTO;
+using App.Domain.Entities;
 using App.Domain.Interfaces;
 using App.Domain.Interfaces.Repository;
 
 namespace App.Application.Services;
 
-public class ServicosesService : IServicosService
+public class ServicosService : IServicosService
 {
     private readonly IRepositoryBase<Servicos> _servicoRepository;
 
-    public ServicosesService(IRepositoryBase<Servicos> servicoRepository)
+    public ServicosService(IRepositoryBase<Servicos> servicoRepository)
     {
         _servicoRepository = servicoRepository;
     }
@@ -29,29 +30,34 @@ public class ServicosesService : IServicosService
             .ToList();
     }
 
-    public void Incluir(Servicos servicos)
+    public void Incluir(CriarServicoRequestDTO request)
     {
-        if (string.IsNullOrWhiteSpace(servicos.Nome))
+        if (string.IsNullOrWhiteSpace(request.Nome))
         {
             throw new InvalidOperationException("O nome do serviço é obrigatório.");
         }
 
-        if (servicos.Duracao <= TimeSpan.Zero)
+        if (request.Duracao <= TimeSpan.Zero)
         {
             throw new InvalidOperationException("A duração do serviço deve ser maior que zero.");
         }
 
-        if (servicos.Valor <= 0)
+        if (request.Valor <= 0)
         {
             throw new InvalidOperationException("O valor do serviço deve ser maior que zero.");
         }
 
-        servicos.Nome = servicos.Nome.Trim();
-        servicos.Descricao = string.IsNullOrWhiteSpace(servicos.Descricao) ? null : servicos.Descricao.Trim();
-        servicos.DataCriacao = servicos.DataCriacao == default ? DateTime.Now : servicos.DataCriacao;
-        servicos.Ativo = true;
+        var servico = new Servicos
+        {
+            Nome = request.Nome.Trim(),
+            Descricao = string.IsNullOrWhiteSpace(request.Descricao) ? null : request.Descricao.Trim(),
+            Duracao = request.Duracao,
+            Valor = request.Valor,
+            DataCriacao = DateTime.Now,
+            Ativo = true
+        };
 
-        _servicoRepository.Insert(servicos);
+        _servicoRepository.Insert(servico);
     }
 
     public void AlterarStatus(int id, bool ativo)

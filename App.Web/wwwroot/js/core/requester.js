@@ -1,18 +1,17 @@
-﻿async function Get(url) {
+﻿const API_FALLBACK_DEV = 'https://localhost:7243/';
+
+async function Get(url) {
     return new Promise((resolve, reject) => {
-        url = ResolveUrl(url);
         $.ajax({
             type: 'GET',
-            url: url,
-            headers: { 'Authorization': 'Bearer ' + GetCookie('CP-Token') },
+            url: ResolveUrl(url),
+            headers: _GetAuthHeader(),
             success: function (response) {
-                if (response.token) {
-                    SetCookie('CP-Token', response.token);
-                }
+                _AtualizarTokenSePresente(response);
                 resolve(response);
             },
             error: function (response) {
-                reject(response);
+                _OnError(response, reject);
             }
         });
     });
@@ -20,124 +19,74 @@
 
 async function Post(url, data) {
     return new Promise((resolve, reject) => {
-        url = ResolveUrl(url);
         $.ajax({
             type: 'POST',
-            url: url,
-            data: JSON.stringify(data || {}),
+            url: ResolveUrl(url),
+            data: JSON.stringify(data),
             dataType: 'json',
             contentType: 'application/json',
             processData: false,
-            headers: { 'Authorization': 'Bearer ' + GetCookie('CP-Token') },
+            headers: _GetAuthHeader(),
             success: function (response) {
-                if (response.token) {
-                    SetCookie('CP-Token', response.token);
-                }
+                _AtualizarTokenSePresente(response);
                 resolve(response);
             },
             error: function (response) {
-                reject(response);
+                _OnError(response, reject);
             }
         });
     });
 }
 
-async function PostFile(url, formData) {
+async function Delete(url) {
     return new Promise((resolve, reject) => {
-        url = ResolveUrl(url);
-        $.ajax({
-            type: 'POST',
-            url: url,
-            data: formData,
-            dataType: 'json',
-            contentType: false,
-            processData: false,
-            headers: { 'Authorization': 'Bearer ' + GetCookie('CP-Token')},
-            success: function (response) {
-                if (response.token) {
-                    SetCookie('CP-Token', response.token);
-                }
-                resolve(response);
-            },
-            error: function (response) {
-                if (response.status === 401 || response.status === 403) {
-                    window.location.href = '/';
-                }
-                reject(response);
-            }
-        });
-    });
-}
-
-async function Put(url, data) {
-    return new Promise((resolve, reject) => {
-        url = ResolveUrl(url);
-        $.ajax({
-            type: 'PUT',
-            url: url,
-            data: JSON.stringify(data || {}),
-            dataType: 'json',
-            contentType: 'application/json',
-            processData: false,
-            headers: { 'Authorization': 'Bearer ' + GetCookie('CP-Token') },
-            success: function (response) {
-                if (response.token) {
-                    SetCookie('CP-Token', response.token);
-                }
-                resolve(response);
-            },
-            error: function (response) {
-                reject(response);
-            }
-        });
-    });
-}
-
-async function Delete(url, data) {
-    return new Promise((resolve, reject) => {
-        url = ResolveUrl(url);
         $.ajax({
             type: 'DELETE',
-            url: url,
-            data: JSON.stringify(data || {}),
-            dataType: 'json',
-            contentType: 'application/json',
-            processData: false,
-            headers: { 'Authorization': 'Bearer ' + GetCookie('CP-Token') },
+            url: ResolveUrl(url),
+            headers: _GetAuthHeader(),
             success: function (response) {
-                if (response.token) {
-                    SetCookie('CP-Token', response.token);
-                }
+                _AtualizarTokenSePresente(response);
                 resolve(response);
             },
             error: function (response) {
-                reject(response);
+                _OnError(response, reject);
             }
         });
     });
-}
-
-function ResolveUrl(url) {
-    if (url.indexOf('http') > - 1) {
-        return url;
-    } else {
-        return GetApiAddress() + url;
-    }
 }
 
 function GetApiAddress() {
-    if (IsDebug()) {
-        if (window.location.host.indexOf('demo') > -1) {
-            return "https://apibarber.com.br/";
-        }
-        return "https://localhost:7243/";
+    if (window.APP_CONFIG?.apiBase) {
+        return window.APP_CONFIG.apiBase;
     }
-    return new URL(window.location.href).origin.replace("http://", "http://api").replace("https://", "https://api") + "/";
+
+    if (window.location.hostname === 'localhost') {
+        return API_FALLBACK_DEV;
+    }
+
+    console.error('[API] APP_CONFIG.apiBase não definido.');
+    return '/';
 }
 
-function IsDebug() {
-    if (window.location.host.indexOf('localhost') > -1 || window.location.host.indexOf('demo') > -1) {
-        return true;
+function ResolveUrl(url) {
+    return url.startsWith('http') ? url : GetApiAddress() + url;
+}
+
+
+function _AtualizarTokenSePresente(response) {
+    if (response?.token) {
+        SetCookie('CP-Token', response.token);
     }
-    return false;
+}
+
+function _GetAuthHeader() {
+    return {'Authorization': 'Bearer ' + GetCookie('CP-Token')};
+}
+
+function _OnError(response, reject) {
+    if (response.status === 401 || response.status === 403) {
+        window.location.href = '/';
+        return;
+    }
+    reject(response);
 }

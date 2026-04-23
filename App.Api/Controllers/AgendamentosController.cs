@@ -22,7 +22,7 @@ public class AgendamentosController : ControllerBase
     }
 
     [HttpGet("ListarHorariosDisponiveis")]
-    public IActionResult ListarHorariosDisponiveis(DateTime data, int servicoId)
+    public IActionResult ListarHorariosDisponiveis([FromQuery] DateTime data, [FromQuery] int servicoId)
     {
         var horarios = _agendamentosService.ListarHorariosDisponiveis(data, servicoId);
         return Ok(horarios);
@@ -43,12 +43,12 @@ public class AgendamentosController : ControllerBase
     }
 
     [HttpPost("IncluirManual")]
-    public IActionResult IncluirManual([FromBody] CriarAgendamentoManualRequest request)
+    public IActionResult IncluirManual([FromBody] CriarAgendamentoManualRequestDTO requestDto)
     {
         try
         {
-            _agendamentosService.IncluirManual(request);
-            return Ok("Agendamentos manual realizado com sucesso!");
+            _agendamentosService.IncluirManual(requestDto);
+            return Ok("Agendamento manual realizado com sucesso!");
         }
         catch (InvalidOperationException ex)
         {
@@ -56,8 +56,8 @@ public class AgendamentosController : ControllerBase
         }
     }
 
-    [HttpGet("AprovarSolicitacao")]
-    public IActionResult AprovarSolicitacao(int id)
+    [HttpPost("AprovarSolicitacao")]
+    public IActionResult AprovarSolicitacao([FromQuery] int id)
     {
         try
         {

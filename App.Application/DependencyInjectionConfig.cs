@@ -8,8 +8,8 @@ public static class DependencyInjectionConfig
 {
     public static void Inject(IServiceCollection services)
     {
-        services.AddTransient<IUsuariosService, UsuariosesService>();
-        services.AddTransient<IServicosService, ServicosesService>();
+        services.AddTransient<IUsuariosService, UsuariosService>();
+        services.AddTransient<IServicosService, ServicosService>();
         services.AddTransient<IAgendamentosService, AgendamentosService>();
         services.AddTransient<IParametrosService, ParametrosService>();
     }

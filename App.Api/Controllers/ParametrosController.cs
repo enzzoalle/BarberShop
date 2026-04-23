@@ -22,11 +22,11 @@ public class ParametrosController : ControllerBase
     }
 
     [HttpPost("Salvar")]
-    public IActionResult Salvar([FromBody] SalvarParametrosRequest request)
+    public IActionResult Salvar([FromBody] SalvarParametrosRequestDTO requestDto)
     {
         try
         {
-            _parametrosService.Salvar(request);
+            _parametrosService.Salvar(requestDto);
             return Ok("Parâmetros atualizados com sucesso.");
         }
         catch (InvalidOperationException ex)

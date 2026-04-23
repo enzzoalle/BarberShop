@@ -1,6 +1,6 @@
 ﻿namespace App.Domain.DTO;
 
-public class CriarAgendamentoManualRequest
+public class CriarAgendamentoManualRequestDTO
 {
     public string NomeCliente { get; set; } = string.Empty;
     public string? NumeroTelefoneCliente { get; set; }

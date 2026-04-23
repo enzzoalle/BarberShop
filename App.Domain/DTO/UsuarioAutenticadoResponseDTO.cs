@@ -1,6 +1,6 @@
 ﻿namespace App.Domain.DTO;
 
-public class UsuarioAutenticadoResponse
+public class UsuarioAutenticadoResponseDTO
 {
     public int Id { get; set; }
     public string Nome { get; set; }

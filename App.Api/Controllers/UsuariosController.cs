@@ -1,5 +1,4 @@
 ﻿using App.Domain.DTO;
-using App.Domain.Entities;
 using App.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,22 +21,8 @@ public class UsuariosController : ControllerBase
         return Ok(registros);
     }
 
-    [HttpPost("Incluir")]
-    public IActionResult Incluir([FromBody] Usuarios usuarios)
-    {
-        try
-        {
-            _usuariosService.Incluir(usuarios);
-            return Ok("Registro incluído com sucesso!");
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-
     [HttpPost("Cadastrar")]
-    public IActionResult Cadastrar([FromBody] CadastrarUsuarioRequest request)
+    public IActionResult Cadastrar([FromBody] CadastrarUsuarioRequestDTO request)
     {
         try
         {
@@ -51,7 +36,7 @@ public class UsuariosController : ControllerBase
     }
 
     [HttpPost("Logar")]
-    public IActionResult Logar([FromBody] LoginUsuarioRequest request)
+    public IActionResult Logar([FromBody] LoginUsuarioRequestDTO request)
     {
         try
         {
@@ -65,7 +50,7 @@ public class UsuariosController : ControllerBase
     }
 
     [HttpPost("LogarAdmin")]
-    public IActionResult LogarAdmin([FromBody] LoginUsuarioRequest request)
+    public IActionResult LogarAdmin([FromBody] LoginUsuarioRequestDTO request)
     {
         try
         {
@@ -83,17 +68,31 @@ public class UsuariosController : ControllerBase
         }
     }
 
-    [HttpPost("Excluir")]
-    public IActionResult Excluir(int id)
+    [HttpDelete("Excluir")]
+    public IActionResult Excluir([FromQuery] int id)
     {
-        _usuariosService.Excluir(id);
-        return Ok("Registro excluído com sucesso!");
+        try
+        {
+            _usuariosService.Excluir(id);
+            return Ok("Registro excluído com sucesso!");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("Editar")]
-    public IActionResult Editar([FromBody] Usuarios usuarios)
+    public IActionResult Editar([FromBody] EditarUsuarioRequestDTO request)
     {
-        _usuariosService.Editar(usuarios);
-        return Ok("Registro editado com sucesso!");
+        try
+        {
+            _usuariosService.Editar(request);
+            return Ok("Registro editado com sucesso!");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }

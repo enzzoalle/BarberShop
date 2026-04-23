@@ -6,9 +6,8 @@ namespace App.Domain.Interfaces;
 public interface IUsuariosService
 {
     IEnumerable<Usuarios> Listar();
-    void Cadastrar(CadastrarUsuarioRequest request);
-    UsuarioAutenticadoResponse Logar(LoginUsuarioRequest request);
-    void Incluir(Usuarios usuarios);
+    void Cadastrar(CadastrarUsuarioRequestDTO requestDto);
+    UsuarioAutenticadoResponseDTO Logar(LoginUsuarioRequestDTO requestDto);
     void Excluir(int id);
-    void Editar(Usuarios usuarios);
+    void Editar(EditarUsuarioRequestDTO request);
 }

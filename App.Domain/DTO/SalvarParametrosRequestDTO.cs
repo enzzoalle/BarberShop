@@ -2,7 +2,7 @@
 
 namespace App.Domain.DTO;
 
-public class SalvarParametrosRequest
+public class SalvarParametrosRequestDTO
 {
     public TimeSpan HorarioAbertura { get; set; }
     public TimeSpan? HorarioFechamento { get; set; }

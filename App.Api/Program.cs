@@ -1,3 +1,4 @@
+using System.Text.Json;
 using App.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,6 +35,10 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+builder.Services.AddControllers()
+    .AddJsonOptions(x => 
+        x.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
 app.UseHttpsRedirection();
 

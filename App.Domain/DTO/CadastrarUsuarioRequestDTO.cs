@@ -1,6 +1,6 @@
 ﻿namespace App.Domain.DTO;
 
-public class CadastrarUsuarioRequest
+public class CadastrarUsuarioRequestDTO
 {
     public string Nome { get; set; }
     public string Senha { get; set; }

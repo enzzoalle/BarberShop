@@ -4,6 +4,6 @@ namespace App.Domain.Interfaces;
 
 public interface IParametrosService
 {
-    ParametrosResponse Obter();
-    void Salvar(SalvarParametrosRequest request);
+    ParametrosResponseDTO Obter();
+    void Salvar(SalvarParametrosRequestDTO requestDto);
 }

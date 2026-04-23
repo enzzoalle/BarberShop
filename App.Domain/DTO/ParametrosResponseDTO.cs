@@ -2,7 +2,7 @@
 
 namespace App.Domain.DTO;
 
-public class ParametrosResponse
+public class ParametrosResponseDTO
 {
     public TimeSpan HorarioAbertura { get; set; }
     public TimeSpan? HorarioFechamento { get; set; }

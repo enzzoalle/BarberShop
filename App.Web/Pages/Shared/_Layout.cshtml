@@ -54,6 +54,12 @@
     </div>
 </footer>
 
+<script>
+        window.APP_CONFIG = {
+            apiBase: '@(Context.Request.Scheme + "://" + Context.Request.Host + "/")'
+        };
+    </script>
+
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/core/functions.js" asp-append-version="true"></script>
