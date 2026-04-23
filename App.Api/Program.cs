@@ -24,7 +24,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(x =>
+        x.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
@@ -36,14 +38,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-builder.Services.AddControllers()
-    .AddJsonOptions(x => 
-        x.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
-
 app.UseHttpsRedirection();
-
 app.UseCors("WebClient");
-
 app.MapControllers();
 
 app.Run();

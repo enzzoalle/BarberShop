@@ -54,11 +54,12 @@
     </div>
 </footer>
 
+@inject IConfiguration Configuration
 <script>
-        window.APP_CONFIG = {
-            apiBase: '@(Context.Request.Scheme + "://" + Context.Request.Host + "/")'
-        };
-    </script>
+    window.APP_CONFIG = {
+        apiBase: '@Configuration["ApiBaseUrl"]'
+    };
+</script>
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

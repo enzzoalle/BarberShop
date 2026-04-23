@@ -27,9 +27,7 @@ function configurarEventos() {
 }
 
 function inicializarCalendario() {
-    if (!window.flatpickr) {
-        return;
-    }
+    if (!window.flatpickr) return;
 
     calendarioInstancia = flatpickr('#calendarioAgendamento', {
         locale: 'pt',
@@ -39,13 +37,10 @@ function inicializarCalendario() {
         minDate: 'today',
         disable: datasBloqueadas,
         onChange: function (selectedDates) {
-            const selecionada = selectedDates && selectedDates[0] ? selectedDates[0] : null;
-            if (!selecionada) {
-                return;
-            }
+            const selecionada = selectedDates?.[0] ?? null;
+            if (!selecionada) return;
 
-            const dataIso = formatDateIso(selecionada);
-            $('#dataAgendamento').val(dataIso).trigger('change');
+            $('#dataAgendamento').val(formatDateIso(selecionada)).trigger('change');
         }
     });
 }
@@ -56,24 +51,16 @@ function preencherDataPadrao() {
 
     $('#dataAgendamento').val(valor);
     $('#dataAgendamentoExibicao').val(formatDateBrShort(valor));
-
-    if (calendarioInstancia) {
-        calendarioInstancia.setDate(hoje, false);
-    }
+    calendarioInstancia?.setDate(hoje, false);
 }
 
 async function carregarParametrosAgendamento() {
-    if (typeof Parametros_Obter !== 'function') {
-        return;
-    }
+    if (typeof Parametros_Obter !== 'function') return;
 
     try {
         const parametros = await Parametros_Obter();
-        const datas = parametros.datasFolgaFeriado || parametros.DatasFolgaFeriado || [];
-        datasBloqueadas = datas.map(function (item) {
-            return String(item).slice(0, 10);
-        });
-    } catch (erro) {
+        datasBloqueadas = (parametros.datasFolgaFeriado || []).map(x => String(x).slice(0, 10));
+    } catch {
         datasBloqueadas = [];
     }
 }
@@ -81,7 +68,6 @@ async function carregarParametrosAgendamento() {
 async function carregarServicos() {
     try {
         servicos = await Servicos_Listar();
-
         const container = $('#servicosContainer');
         container.empty();
 
@@ -91,10 +77,10 @@ async function carregarServicos() {
         }
 
         servicos.forEach(function (servico) {
-            const duracao = formatTimeValue(servico.duracao || servico.Duracao);
-            const valor = formatCurrencyBr(servico.valor ?? servico.Valor);
-            const nome = servico.nome || servico.Nome;
-            const id = servico.id || servico.Id;
+            const id = servico.id;
+            const nome = escapeHtml(servico.nome);
+            const duracao = formatTimeValue(servico.duracao);
+            const valor = formatCurrencyBr(servico.valor);
 
             container.append(`
                 <label class="servico-card" for="servico-${id}">
@@ -140,13 +126,12 @@ async function atualizarHorarios() {
         }
 
         horarios.forEach(function (horario) {
-            container.append(`<button type="button" class="btn btn-outline-light horario-btn" data-horario="${horario}">${horario}</button>`);
+            container.append(`<button type="button" class="btn btn-outline-light horario-btn" data-horario="${escapeHtml(horario)}">${escapeHtml(horario)}</button>`);
         });
 
         $('.horario-btn').on('click', function () {
             $('.horario-btn').removeClass('active');
             $(this).addClass('active');
-
             horarioSelecionado = $(this).data('horario');
             $('#horarioSelecionado').val(horarioSelecionado);
         });
@@ -157,35 +142,32 @@ async function atualizarHorarios() {
 }
 
 async function confirmarAgendamento() {
-    const data = $('#dataAgendamento').val();
     const payload = {
         nomeCliente: $('#nomeCliente').val().trim(),
         numeroTelefoneCliente: $('#numeroTelefoneCliente').val().trim(),
         servicoId: servicoSelecionadoId,
-        dataAgendamento: data,
+        dataAgendamento: $('#dataAgendamento').val(),
         horarioAgendamento: $('#horarioSelecionado').val(),
         observacao: $('#observacao').val().trim() || null
     };
 
     if (!payload.nomeCliente || !payload.numeroTelefoneCliente || !payload.servicoId || !payload.dataAgendamento || !payload.horarioAgendamento) {
-        $('#mensagemAgendamento').text('Preencha todos os campos obrigatórios.').removeClass('text-success').addClass('text-danger');
+        exibirMensagem('#mensagemAgendamento', 'Preencha todos os campos obrigatórios.', false);
         return;
     }
 
     try {
         await Agendamentos_Incluir(payload);
-        $('#mensagemAgendamento').text('Solicitação enviada com sucesso! Aguarde a aprovação do administrador.').removeClass('text-danger').addClass('text-success');
+        exibirMensagem('#mensagemAgendamento', 'Solicitação enviada com sucesso! Aguarde a aprovação do administrador.', true);
+
         $('#agendamentoForm')[0].reset();
         $('#horariosContainer').html('<p class="text-muted">Selecione serviço e data para exibir horários.</p>');
-        $('#servicosContainer input[type="radio"]').prop('checked', false);
         $('.servico-card').removeClass('active');
         servicoSelecionadoId = null;
         horarioSelecionado = null;
         preencherDataPadrao();
     } catch (erro) {
         console.error(erro);
-        $('#mensagemAgendamento').text('Não foi possível enviar sua solicitação. Tente novamente.').removeClass('text-success').addClass('text-danger');
+        exibirMensagem('#mensagemAgendamento', 'Não foi possível enviar sua solicitação. Tente novamente.', false);
     }
 }
-
-

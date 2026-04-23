@@ -1,19 +1,15 @@
 ﻿function parseDate(input) {
     if (input instanceof Date) {
-        const dataCopia = new Date(input);
-        return Number.isNaN(dataCopia.getTime()) ? null : dataCopia;
+        const copia = new Date(input);
+        return Number.isNaN(copia.getTime()) ? null : copia;
     }
 
     if (typeof input === 'string') {
         const valor = input.trim();
-        const correspondeDataSemFuso = /^\d{4}-\d{2}-\d{2}$/.test(valor);
-        if (correspondeDataSemFuso) {
-            const partes = valor.split('-');
-            const ano = Number(partes[0]);
-            const mes = Number(partes[1]) - 1;
-            const dia = Number(partes[2]);
-            const dataLocal = new Date(ano, mes, dia, 0, 0, 0, 0);
-            return Number.isNaN(dataLocal.getTime()) ? null : dataLocal;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+            const [ano, mes, dia] = valor.split('-').map(Number);
+            const data = new Date(ano, mes - 1, dia, 0, 0, 0, 0);
+            return Number.isNaN(data.getTime()) ? null : data;
         }
     }
 
@@ -26,8 +22,8 @@ function addDays(input, amount) {
     if (!data) {
         return null;
     }
-
     data.setDate(data.getDate() + Number(amount || 0));
+
     return data;
 }
 
@@ -36,11 +32,10 @@ function getStartOfWeekMonday(input) {
     if (!data) {
         return null;
     }
-
-    const diaSemana = data.getDay();
-    const diferenca = diaSemana === 0 ? -6 : 1 - diaSemana;
-    data.setDate(data.getDate() + diferenca);
+    const dia = data.getDay();
+    data.setDate(data.getDate() + (dia === 0 ? -6 : 1 - dia));
     data.setHours(0, 0, 0, 0);
+
     return data;
 }
 
@@ -49,10 +44,10 @@ function formatDateBrShort(input) {
     if (!data) {
         return '';
     }
-
     const dia = String(data.getDate()).padStart(2, '0');
     const mes = String(data.getMonth() + 1).padStart(2, '0');
     const ano = String(data.getFullYear()).slice(-2);
+
     return `${dia}/${mes}/${ano}`;
 }
 
@@ -61,11 +56,10 @@ function formatDateBr(input) {
     if (!data) {
         return '';
     }
-
     const dia = String(data.getDate()).padStart(2, '0');
     const mes = String(data.getMonth() + 1).padStart(2, '0');
-    const ano = String(data.getFullYear());
-    return `${dia}/${mes}/${ano}`;
+
+    return `${dia}/${mes}/${data.getFullYear()}`;
 }
 
 function formatDateIso(input) {
@@ -73,11 +67,10 @@ function formatDateIso(input) {
     if (!data) {
         return '';
     }
-
-    const ano = data.getFullYear();
     const mes = String(data.getMonth() + 1).padStart(2, '0');
     const dia = String(data.getDate()).padStart(2, '0');
-    return `${ano}-${mes}-${dia}`;
+
+    return `${data.getFullYear()}-${mes}-${dia}`;
 }
 
 function formatWeekdayPt(input) {
@@ -85,16 +78,13 @@ function formatWeekdayPt(input) {
     if (!data) {
         return '';
     }
+    const nome = new Intl.DateTimeFormat('pt-BR', {weekday: 'long'}).format(data).replace('-feira', '');
 
-    const nome = new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(data).replace('-feira', '');
     return nome.charAt(0).toUpperCase() + nome.slice(1);
 }
 
 function formatCurrencyBr(valor) {
-    return Number(valor || 0).toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-    });
+    return Number(valor || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
 }
 
 function formatTimeValue(valor) {
@@ -106,22 +96,22 @@ function formatTimeValue(valor) {
         return valor.slice(0, 5);
     }
 
-    const horas = String(valor.Hours || valor.hours || 0).padStart(2, '0');
-    const minutos = String(valor.Minutes || valor.minutes || 0).padStart(2, '0');
-    return `${horas}:${minutos}`;
+    const h = String(valor.hours ?? 0).padStart(2, '0');
+    const m = String(valor.minutes ?? 0).padStart(2, '0');
+
+    return `${h}:${m}`;
 }
 
 function formatDurationMinutes(value) {
     if (!value) {
         return 0;
     }
-
     if (typeof value === 'string') {
-        const partes = value.split(':');
-        return Number(partes[0] || 0) * 60 + Number(partes[1] || 0);
+        const [h, m] = value.split(':').map(Number);
+        return (h || 0) * 60 + (m || 0);
     }
 
-    return Number((value.Hours || value.hours || 0) * 60 + (value.Minutes || value.minutes || 0));
+    return (value.hours ?? 0) * 60 + (value.minutes ?? 0);
 }
 
 function onlyDigits(value) {
@@ -135,41 +125,60 @@ function applyPhoneMask(selector) {
     }
 
     $input.on('input', function () {
-        let digits = onlyDigits($(this).val()).slice(0, 11);
+        let d = onlyDigits($(this).val()).slice(0, 11);
 
-        if (digits.length > 10) {
-            digits = digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-        } else if (digits.length > 6) {
-            digits = digits.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-        } else if (digits.length > 2) {
-            digits = digits.replace(/(\d{2})(\d{0,5})/, '($1) $2');
-        } else if (digits.length > 0) {
-            digits = digits.replace(/(\d{0,2})/, '($1');
+        if (d.length > 10) {
+            d = d.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+        } else if (d.length > 6) {
+            d = d.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+        } else if (d.length > 2) {
+            d = d.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+        } else if (d.length > 0) {
+            d = d.replace(/(\d{0,2})/, '($1');
         }
 
-        $(this).val(digits.trim());
+        $(this).val(d.trim());
     });
+}
+
+function escapeHtml(str) {
+    if (!str) {
+        return '';
+    }
+
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function exibirMensagem(seletor, mensagem, sucesso) {
+    $(seletor)
+        .text(mensagem)
+        .removeClass('text-danger text-success')
+        .addClass(sucesso ? 'text-success' : 'text-danger');
 }
 
 function getUsuarioLogado() {
     try {
-        return JSON.parse(localStorage.getItem('usuario-logado') || 'null');
-    } catch (error) {
+        return JSON.parse(sessionStorage.getItem('usuario-logado') || 'null');
+    } catch {
         return null;
     }
 }
 
-function isUsuarioAdmin(usuario) {
-    if (!usuario) {
-        return false;
-    }
+function salvarSessaoUsuario(usuario) {
+    sessionStorage.setItem('usuario-logado', JSON.stringify(usuario));
+}
 
-    return Boolean(usuario.isAdmin ?? usuario.IsAdmin);
+function isUsuarioAdmin(usuario) {
+    return Boolean(usuario?.isAdmin);
 }
 
 function limparSessaoUsuario() {
-    localStorage.removeItem('usuario-logado');
-    sessionStorage.removeItem('admin-auth');
+    sessionStorage.removeItem('usuario-logado');
 }
 
 function atualizarEstadoAuthLayout() {
@@ -177,26 +186,20 @@ function atualizarEstadoAuthLayout() {
     const $entrar = $('#btnEntrar');
     const $sair = $('#btnSair');
     const $welcome = $('#authWelcome');
-    const $painelAdmin = $('#navPainelAdminItem');
+    const $admin = $('#navPainelAdminItem');
 
     if (!usuario) {
         $entrar.removeClass('d-none').attr('aria-hidden', 'false');
         $sair.addClass('d-none');
         $welcome.addClass('d-none').text('');
-        $painelAdmin.addClass('d-none');
+        $admin.addClass('d-none');
         return;
     }
 
-    const nome = usuario.nome || usuario.Nome || 'usuário';
-    $welcome.text(`Olá, ${nome}`).removeClass('d-none');
+    $welcome.text(`Olá, ${escapeHtml(usuario.nome || 'usuário')}`).removeClass('d-none');
     $entrar.addClass('d-none').attr('aria-hidden', 'true');
     $sair.removeClass('d-none');
-
-    if (isUsuarioAdmin(usuario)) {
-        $painelAdmin.removeClass('d-none');
-    } else {
-        $painelAdmin.addClass('d-none');
-    }
+    $admin.toggleClass('d-none', !isUsuarioAdmin(usuario));
 }
 
 $(document).ready(function () {
@@ -204,18 +207,10 @@ $(document).ready(function () {
 
     $('#btnSair').on('click', function () {
         limparSessaoUsuario();
-        atualizarEstadoAuthLayout();
         window.location.href = '/';
-    });
-
-    window.addEventListener('storage', function (event) {
-        if (event.key === 'usuario-logado') {
-            atualizarEstadoAuthLayout();
-        }
     });
 
     window.addEventListener('auth-changed', function () {
         atualizarEstadoAuthLayout();
     });
 });
-

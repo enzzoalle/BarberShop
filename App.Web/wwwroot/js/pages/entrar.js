@@ -1,7 +1,6 @@
 ﻿$(document).ready(function () {
     redirecionarSeJaAutenticado();
     exibirMensagemPosCadastro();
-
     applyPhoneMask('#cadastroTelefone');
 
     $('#loginForm').on('submit', async function (event) {
@@ -22,27 +21,25 @@ async function fazerLogin() {
     };
 
     if (!payload.usuario || !payload.senha) {
-        exibirMensagemAuth('Informe usuário e senha.', false);
+        exibirMensagem('#mensagemAuth', 'Informe usuário e senha.', false);
         return;
     }
 
     try {
         const usuario = await Usuarios_Logar(payload);
-        localStorage.setItem('usuario-logado', JSON.stringify(usuario));
+
+        salvarSessaoUsuario(usuario);
         window.dispatchEvent(new Event('auth-changed'));
 
-        const isAdmin = Boolean(usuario.isAdmin ?? usuario.IsAdmin);
-        if (isAdmin) {
-            sessionStorage.setItem('admin-auth', JSON.stringify(usuario));
+        if (isUsuarioAdmin(usuario)) {
             window.location.href = '/admin';
             return;
         }
 
-        exibirMensagemAuth(`Bem-vindo, ${usuario.nome || usuario.Nome}!`, true);
         window.location.href = '/';
     } catch (erro) {
-        const mensagem = erro.responseText || 'Não foi possível realizar o login.';
-        exibirMensagemAuth(mensagem, false);
+        const mensagem = erro.responseJSON || erro.responseText || 'Não foi possível realizar o login.';
+        exibirMensagem('#mensagemAuth', mensagem, false);
     }
 }
 
@@ -54,7 +51,7 @@ async function criarConta() {
     };
 
     if (!payload.nome || !payload.numeroTelefone || !payload.senha) {
-        exibirMensagemAuth('Preencha os campos obrigatórios para criar sua conta.', false);
+        exibirMensagem('#mensagemAuth', 'Preencha os campos obrigatórios para criar sua conta.', false);
         return;
     }
 
@@ -62,42 +59,26 @@ async function criarConta() {
         await Usuarios_Cadastrar(payload);
         window.location.href = '/entrar?cadastro=sucesso';
     } catch (erro) {
-        const mensagem = erro.responseText || 'Não foi possível concluir o cadastro.';
-        exibirMensagemAuth(mensagem, false);
+        const mensagem = erro.responseJSON || erro.responseText || 'Não foi possível concluir o cadastro.';
+        exibirMensagem('#mensagemAuth', mensagem, false);
     }
 }
 
 function redirecionarSeJaAutenticado() {
     const usuario = getUsuarioLogado();
-    if (!usuario) {
-        return;
-    }
+    if (!usuario) return;
 
-    if (isUsuarioAdmin(usuario)) {
-        window.location.replace('/admin');
-        return;
-    }
-
-    window.location.replace('/');
+    window.location.replace(isUsuarioAdmin(usuario) ? '/admin' : '/');
 }
 
 function exibirMensagemPosCadastro() {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('cadastro') !== 'sucesso') {
-        return;
-    }
+    if (params.get('cadastro') !== 'sucesso') return;
 
-    exibirMensagemAuth('Conta criada com sucesso! Faça seu login.', true);
+    exibirMensagem('#mensagemAuth', 'Conta criada com sucesso! Faça seu login.', true);
     $('#loginUsuario').trigger('focus');
 
     params.delete('cadastro');
-    const novaUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+    const novaUrl = `${window.location.pathname}${params.size ? `?${params}` : ''}`;
     window.history.replaceState({}, document.title, novaUrl);
-}
-
-function exibirMensagemAuth(mensagem, sucesso) {
-    $('#mensagemAuth')
-        .text(mensagem)
-        .removeClass('text-danger text-success')
-        .addClass(sucesso ? 'text-success' : 'text-danger');
 }
