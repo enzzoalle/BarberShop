@@ -24,7 +24,6 @@ public class ParametrosService : IParametrosService
 
     public ParametrosResponseDTO Obter()
     {
-        // Query seletiva, sem GetAll()
         var parametros = _parametrosRepository
             .Query(x => true)
             .Select(x => new { x.Id, x.HorarioAbertura, x.HorarioFechamento, x.DiasFuncionamento })
@@ -37,34 +36,38 @@ public class ParametrosService : IParametrosService
                 HorarioAbertura = HorarioAberturaPadrao,
                 HorarioFechamento = HorarioFechamentoPadrao,
                 DiasFuncionamento = DiasFuncionamentoEnum.AteSabado,
-                DatasFolgaFeriado = []
+                DatasFolgaFeriado = new List<string>()
             };
         }
 
         var folgas = _folgaFeriadoRepository
             .Query(x => x.ParametrosId == parametros.Id)
             .OrderBy(x => x.Data)
-            .Select(x => x.Data.ToString("yyyy-MM-dd"))
+            .Select(x => x.Data)
+            .ToList()
+            .Select(data => data.ToString("yyyy-MM-dd"))
             .ToList();
 
         return new ParametrosResponseDTO
         {
             HorarioAbertura = parametros.HorarioAbertura,
-            HorarioFechamento = parametros.HorarioFechamento,
+            HorarioFechamento = parametros.HorarioFechamento ?? HorarioFechamentoPadrao, 
             DiasFuncionamento = parametros.DiasFuncionamento,
             DatasFolgaFeriado = folgas
         };
     }
-
     public void Salvar(SalvarParametrosRequestDTO requestDto)
     {
         if (requestDto.HorarioAbertura == TimeSpan.Zero)
+        {
             throw new InvalidOperationException("Informe um horário de abertura válido.");
+        }
 
         if (requestDto.HorarioFechamento is not null && requestDto.HorarioFechamento <= requestDto.HorarioAbertura)
+        {
             throw new InvalidOperationException("O horário de fechamento deve ser maior que o horário de abertura.");
+        }
 
-        // Upsert de parâmetros
         var parametros = _parametrosRepository.Query(x => true).FirstOrDefault();
         if (parametros is null)
         {
@@ -87,10 +90,6 @@ public class ParametrosService : IParametrosService
         SincronizarFolgas(parametros.Id, requestDto.DatasFolgaFeriado);
     }
 
-    // -------------------------------------------------------------------------
-    // Privados
-    // -------------------------------------------------------------------------
-
     private void SincronizarFolgas(int parametrosId, IEnumerable<DateTime>? datasRequest)
     {
         var datasDesejadas = (datasRequest ?? [])
@@ -102,12 +101,12 @@ public class ParametrosService : IParametrosService
             .Query(x => x.ParametrosId == parametrosId)
             .ToList();
 
-        // Remover folgas que saíram da lista — idealmente batch, mas limitado pelo repositório atual
         var paraRemover = folgasAtuais.Where(x => !datasDesejadas.Contains(x.Data.Date)).ToList();
         foreach (var folga in paraRemover)
+        {
             _folgaFeriadoRepository.Remove(folga);
+        }
 
-        // Inserir novas datas
         var datasExistentes = folgasAtuais.Select(x => x.Data.Date).ToHashSet();
         var paraInserir = datasDesejadas.Where(x => !datasExistentes.Contains(x)).ToList();
         foreach (var data in paraInserir)

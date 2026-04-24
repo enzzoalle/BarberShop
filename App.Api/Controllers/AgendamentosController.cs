@@ -62,7 +62,7 @@ public class AgendamentosController : ControllerBase
         try
         {
             var linkWhatsapp = _agendamentosService.AprovarSolicitacao(id);
-            return Redirect(linkWhatsapp);
+            return Ok(new { url = linkWhatsapp });
         }
         catch (InvalidOperationException ex)
         {

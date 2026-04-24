@@ -49,6 +49,8 @@ $(document).ready(function () {
 
     if (getUsuarioLogado()) {
         exibirPainel();
+        carregarServicosParaManual();
+        carregarParametros();
         carregarPainel();
         iniciarAutoRefreshAdmin();
     } else {
@@ -72,6 +74,8 @@ async function autenticarAdmin() {
         salvarSessaoUsuario(usuario);
         window.dispatchEvent(new Event('auth-changed'));
         exibirPainel();
+        await carregarServicosParaManual();
+        await carregarParametros();
         await carregarPainel();
         iniciarAutoRefreshAdmin();
     } catch (erro) {
@@ -115,10 +119,8 @@ function pararAutoRefreshAdmin() {
 async function carregarPainel() {
     await Promise.all([
         carregarServicosAdmin(),
-        carregarServicosParaManual(),
         carregarSolicitacoesPendentes(),
-        carregarAgendaDoDia(),
-        carregarParametros()
+        carregarAgendaDoDia()
     ]);
 }
 
@@ -386,7 +388,9 @@ async function abrirAprovacaoSolicitacao(id, $botao) {
     $botao?.prop('disabled', true).text('Aprovando...');
 
     try {
-        const linkWhatsapp = await Agendamentos_AprovarSolicitacao(id);
+        const resposta = await Agendamentos_AprovarSolicitacao(id);
+        const linkWhatsapp = resposta.url ? resposta.url : resposta;
+
         const novaAba = window.open(linkWhatsapp, '_blank');
 
         if (!novaAba) {

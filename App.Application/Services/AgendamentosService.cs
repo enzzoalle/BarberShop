@@ -34,14 +34,21 @@ public class AgendamentosService : IAgendamentosService
         _folgaFeriadoRepository = folgaFeriadoRepository;
     }
 
-    public IEnumerable<Agendamentos> Listar()
+    public IEnumerable<object> Listar()
     {
         return _agendamentoRepository
             .Query(x => true)
-            .Include(x => x.Clientes)
-            .Include(x => x.Servicos)
             .OrderByDescending(x => x.DataAgendamento)
             .ThenBy(x => x.HorarioAgendamento)
+            .Select(x => new
+            {
+                x.Id,
+                x.DataAgendamento,
+                x.HorarioAgendamento,
+                x.StatusAgendamento,
+                Clientes = new { x.Clientes.Nome, x.Clientes.NumeroTelefone },
+                Servicos = new { x.Servicos.Nome, x.Servicos.Duracao, x.Servicos.Valor }
+            })
             .ToList();
     }
 
@@ -65,6 +72,15 @@ public class AgendamentosService : IAgendamentosService
 
         var horariosDisponiveis = new List<string>();
         var horarioAtual = expediente.Abertura;
+
+        if (dataSelecionada == DateTime.Today)
+        {
+            var horaAtual = DateTime.Now.TimeOfDay;
+            while (horarioAtual <= horaAtual)
+            {
+                horarioAtual += IntervaloMinimoEntreHorarios;
+            }
+        }
 
         while (horarioAtual + servico.Duracao <= expediente.Fechamento)
         {

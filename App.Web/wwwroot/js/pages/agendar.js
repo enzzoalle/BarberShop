@@ -124,12 +124,23 @@ async function atualizarHorarios() {
     try {
         const horarios = await Agendamentos_ListarHorariosDisponiveis(dataSelecionada, servicoSelecionadoId);
 
-        if (!horarios || horarios.length === 0) {
+        const hoje = new Date();
+        const dataHojeStr = formatDateIso(hoje);
+        const horaAtualStr = hoje.toTimeString().slice(0, 5);
+
+        const horariosValidosCliente = horarios.filter(h => {
+            if (dataSelecionada === dataHojeStr) {
+                return h >= horaAtualStr;
+            }
+            return true;
+        });
+
+        if (!horariosValidosCliente || horariosValidosCliente.length === 0) {
             container.html('<p class="text-muted">Não há horários disponíveis para este dia.</p>');
             return;
         }
 
-        horarios.forEach(function (horario) {
+        horariosValidosCliente.forEach(function (horario) {
             container.append(`<button type="button" class="btn btn-outline-light horario-btn" data-horario="${escapeHtml(horario)}">${escapeHtml(horario)}</button>`);
         });
 

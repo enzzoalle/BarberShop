@@ -14,19 +14,21 @@ public class ServicosService : IServicosService
         _servicoRepository = servicoRepository;
     }
 
-    public IEnumerable<Servicos> Listar()
+    public IEnumerable<object> Listar()
     {
         return _servicoRepository
             .Query(x => x.Ativo)
             .OrderBy(x => x.Nome)
+            .Select(x => new { x.Id, x.Nome, x.Duracao, x.Valor, x.Descricao, x.Ativo })
             .ToList();
     }
 
-    public IEnumerable<Servicos> ListarTodos()
+    public IEnumerable<object> ListarTodos()
     {
         return _servicoRepository
             .Query(x => true)
             .OrderBy(x => x.Nome)
+            .Select(x => new { x.Id, x.Nome, x.Duracao, x.Valor, x.Descricao, x.Ativo })
             .ToList();
     }
 
@@ -60,10 +62,11 @@ public class ServicosService : IServicosService
         _servicoRepository.Insert(servico);
     }
 
-    public void AlterarStatus(int id, bool ativo)
+    public bool AlterarStatus(int id, bool ativo)
     {
         var servico = _servicoRepository.FindById(id);
         servico.Ativo = ativo;
         _servicoRepository.Update(servico);
+        return true;
     }
 }

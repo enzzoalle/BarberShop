@@ -5,8 +5,8 @@ namespace App.Domain.Interfaces;
 
 public interface IServicosService
 {
-    IEnumerable<Servicos> Listar();
-    IEnumerable<Servicos> ListarTodos();
+    IEnumerable<object> Listar();
+    IEnumerable<object> ListarTodos();
     void Incluir(CriarServicoRequestDTO request);
-    void AlterarStatus(int id, bool ativo);
+    bool AlterarStatus(int id, bool ativo);
 }
