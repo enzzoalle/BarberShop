@@ -147,9 +147,13 @@ async function cadastrarServico() {
     try {
         const mensagem = await Servicos_Incluir(payload);
         exibirMensagem('#adminServicoMensagem', mensagem || 'Serviço cadastrado com sucesso.', true);
-        $('#novoServicoForm')[0].reset();
+
+        $('#servicoNome').val('');
         $('#servicoDuracao').val('30');
-        await carregarPainel();
+        $('#servicoValor').val('');
+        $('#servicoDescricao').val('');
+
+        await carregarServicosAdmin();
     } catch (erro) {
         exibirMensagem('#adminServicoMensagem', erro.responseJSON || erro.responseText || 'Não foi possível cadastrar o serviço.', false);
     }
@@ -191,11 +195,17 @@ async function carregarServicosAdmin() {
         $('[data-servico-status-id]').off('click').on('click', async function () {
             const id = Number($(this).data('servico-status-id'));
             const ativoAtual = String($(this).data('ativo')).toLowerCase() === 'true';
+            const $btn = $(this);
+
+            $btn.prop('disabled', true).text('Aguarde...');
+
             try {
                 await Servicos_AlterarStatus(id, !ativoAtual);
-                await carregarPainel();
+                exibirMensagem('#adminServicoMensagem', `Serviço ${!ativoAtual ? 'ativado' : 'desativado'} com sucesso.`, true);
+                await carregarServicosAdmin();
             } catch (erro) {
                 exibirMensagem('#adminServicoMensagem', erro.responseJSON || erro.responseText || 'Não foi possível alterar o status.', false);
+                $btn.prop('disabled', false);
             }
         });
     } catch {
@@ -264,7 +274,8 @@ async function carregarAgendaDoDia() {
         ]);
 
         const filtrados = (agendamentos || [])
-            .filter(item => String(item.dataAgendamento || '').slice(0, 10) === dataSelecionada)
+            .filter(item => String(item.dataAgendamento || '').slice(0, 10) === dataSelecionada
+                && Number(item.statusAgendamento) !== 1)
             .sort((a, b) => formatTimeValue(a.horarioAgendamento).localeCompare(formatTimeValue(b.horarioAgendamento)));
 
         atualizarInsights(filtrados, servicos || []);
@@ -413,6 +424,9 @@ async function carregarParametros() {
         $('#paramHorarioAbertura').val(formatTimeValue(p.horarioAbertura));
         $('#paramHorarioFechamento').val(formatTimeValue(p.horarioFechamento));
         $('#paramDiasFuncionamento').val(String(p.diasFuncionamento ?? 2));
+        $('#paramTelefonePrincipal').val(p.telefonePrincipal || '');
+        $('#paramTelefoneSecundario').val(p.telefoneSecundario || '');
+        $('#paramLocalizacao').val(p.localizacao || '');
 
         datasFolga = [...new Set((p.datasFolgaFeriado || []).map(x => String(x).slice(0, 10)))].sort();
         renderizarFolgas();
@@ -464,9 +478,15 @@ function renderizarFolgas() {
 async function salvarParametros() {
     const horarioAbertura = $('#paramHorarioAbertura').val();
     const horarioFechamento = $('#paramHorarioFechamento').val();
+    const telefonePrincipal = $('#paramTelefonePrincipal').val().trim();
 
     if (!horarioAbertura || !horarioFechamento) {
         exibirMensagem('#adminParametrosMensagem', 'Preencha abertura e fechamento.', false);
+        return;
+    }
+
+    if (!telefonePrincipal) {
+        exibirMensagem('#adminParametrosMensagem', 'Informe o telefone principal.', false);
         return;
     }
 
@@ -474,7 +494,10 @@ async function salvarParametros() {
         horarioAbertura: `${horarioAbertura}:00`,
         horarioFechamento: `${horarioFechamento}:00`,
         diasFuncionamento: Number($('#paramDiasFuncionamento').val()),
-        datasFolgaFeriado: datasFolga
+        datasFolgaFeriado: datasFolga,
+        telefonePrincipal,
+        telefoneSecundario: $('#paramTelefoneSecundario').val().trim() || null,
+        localizacao: $('#paramLocalizacao').val().trim() || null
     };
 
     try {

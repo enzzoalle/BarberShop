@@ -31,7 +31,10 @@ public class ParametrosService : IParametrosService
                 x.Id,
                 x.HorarioAbertura,
                 x.HorarioFechamento,
-                x.DiasFuncionamento
+                x.DiasFuncionamento,
+                x.TelefonePrincipal,
+                x.TelefoneSecundario,
+                x.Localizacao
             })
             .FirstOrDefault();
 
@@ -42,7 +45,10 @@ public class ParametrosService : IParametrosService
                 HorarioAbertura = HorarioAberturaPadrao,
                 HorarioFechamento = HorarioFechamentoPadrao,
                 DiasFuncionamento = DiasFuncionamentoEnum.AteSabado,
-                DatasFolgaFeriado = new List<string>()
+                DatasFolgaFeriado = new List<string>(),
+                TelefonePrincipal = null,
+                TelefoneSecundario = null,
+                Localizacao = null
             };
         }
 
@@ -59,7 +65,10 @@ public class ParametrosService : IParametrosService
             HorarioAbertura = parametros.HorarioAbertura,
             HorarioFechamento = parametros.HorarioFechamento ?? HorarioFechamentoPadrao,
             DiasFuncionamento = parametros.DiasFuncionamento,
-            DatasFolgaFeriado = folgas
+            DatasFolgaFeriado = folgas,
+            TelefonePrincipal = parametros.TelefonePrincipal,
+            TelefoneSecundario = parametros.TelefoneSecundario,
+            Localizacao = parametros.Localizacao
         };
     }
 
@@ -75,6 +84,11 @@ public class ParametrosService : IParametrosService
             throw new InvalidOperationException("O horário de fechamento deve ser maior que o horário de abertura.");
         }
 
+        if (string.IsNullOrWhiteSpace(requestDto.TelefonePrincipal))
+        {
+            throw new InvalidOperationException("Informe o telefone principal.");
+        }
+
         var parametros = _parametrosRepository.Query(x => true).FirstOrDefault();
         if (parametros is null)
         {
@@ -82,7 +96,10 @@ public class ParametrosService : IParametrosService
             {
                 HorarioAbertura = requestDto.HorarioAbertura,
                 HorarioFechamento = requestDto.HorarioFechamento,
-                DiasFuncionamento = requestDto.DiasFuncionamento
+                DiasFuncionamento = requestDto.DiasFuncionamento,
+                TelefonePrincipal = requestDto.TelefonePrincipal.Trim(),
+                TelefoneSecundario = string.IsNullOrWhiteSpace(requestDto.TelefoneSecundario) ? null : requestDto.TelefoneSecundario.Trim(),
+                Localizacao = string.IsNullOrWhiteSpace(requestDto.Localizacao) ? null : requestDto.Localizacao.Trim()
             };
             _parametrosRepository.Insert(parametros);
         }
@@ -91,12 +108,14 @@ public class ParametrosService : IParametrosService
             parametros.HorarioAbertura = requestDto.HorarioAbertura;
             parametros.HorarioFechamento = requestDto.HorarioFechamento;
             parametros.DiasFuncionamento = requestDto.DiasFuncionamento;
+            parametros.TelefonePrincipal = requestDto.TelefonePrincipal.Trim();
+            parametros.TelefoneSecundario = string.IsNullOrWhiteSpace(requestDto.TelefoneSecundario) ? null : requestDto.TelefoneSecundario.Trim();
+            parametros.Localizacao = string.IsNullOrWhiteSpace(requestDto.Localizacao) ? null : requestDto.Localizacao.Trim();
             _parametrosRepository.Update(parametros);
         }
 
         SincronizarFolgas(parametros.Id, requestDto.DatasFolgaFeriado);
     }
-
     private void SincronizarFolgas(int parametrosId, IEnumerable<DateTime>? datasRequest)
     {
         var datasDesejadas = (datasRequest ?? [])

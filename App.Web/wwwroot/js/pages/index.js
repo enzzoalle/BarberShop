@@ -25,10 +25,19 @@ async function carregarHomeCompleta() {
 }
 
 async function carregarDisponibilidadeSemanal(container, servicoId) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
     const inicioSemana = getStartOfWeekMonday(new Date());
     const dias = Array.from({ length: 7 }, (_, i) => addDays(inicioSemana, i));
 
-    const consultas = dias.map(async function (dia) {
+    const diasFuturos = dias.filter(dia => {
+        const d = new Date(dia);
+        d.setHours(0, 0, 0, 0);
+        return d >= hoje;
+    });
+
+    const consultas = diasFuturos.map(async function (dia) {
         const iso = formatDateIso(dia);
         try {
             const horarios = await Agendamentos_ListarHorariosDisponiveis(iso, servicoId);

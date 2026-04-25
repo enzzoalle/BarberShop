@@ -53,6 +53,11 @@ public class AgendamentosService : IAgendamentosService
 
     public IEnumerable<string> ListarHorariosDisponiveis(DateTime data, int servicoId)
     {
+        if (data.Date < DateTime.Today)
+        {
+            return [];
+        }
+
         var servico = _servicoRepository.FindById(servicoId);
         var expediente = ObterExpediente();
 
