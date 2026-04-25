@@ -313,7 +313,7 @@ function atualizarInsights(agendamentosDia, servicos) {
 async function carregarServicosParaManual() {
     const seletor = $('#manualServico');
     try {
-        manualServicos = await Servicos_Listar();
+        manualServicos = await Servicos_ListarAtivos();
         const valorAtual = seletor.val();
 
         seletor.empty().append('<option value="">Selecione...</option>');
@@ -441,7 +441,7 @@ function renderizarFolgas() {
     container.empty();
 
     if (datasFolga.length === 0) {
-        container.append('<span class="text-muted">Nenhuma folga/feriado cadastrada.</span>');
+        container.append('<span class="text-muted">Nenhuma folga/feriado cadastrado.</span>');
         return;
     }
 

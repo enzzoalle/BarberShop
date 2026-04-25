@@ -14,13 +14,6 @@ public class UsuariosController : ControllerBase
         _usuariosService = usuariosService;
     }
 
-    [HttpGet("Listar")]
-    public IActionResult Listar()
-    {
-        var registros = _usuariosService.Listar();
-        return Ok(registros);
-    }
-
     [HttpPost("Cadastrar")]
     public IActionResult Cadastrar([FromBody] CadastrarUsuarioRequestDTO request)
     {

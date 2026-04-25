@@ -26,7 +26,13 @@ public class ParametrosService : IParametrosService
     {
         var parametros = _parametrosRepository
             .Query(x => true)
-            .Select(x => new { x.Id, x.HorarioAbertura, x.HorarioFechamento, x.DiasFuncionamento })
+            .Select(x => new
+            {
+                x.Id,
+                x.HorarioAbertura,
+                x.HorarioFechamento,
+                x.DiasFuncionamento
+            })
             .FirstOrDefault();
 
         if (parametros is null)
@@ -51,11 +57,12 @@ public class ParametrosService : IParametrosService
         return new ParametrosResponseDTO
         {
             HorarioAbertura = parametros.HorarioAbertura,
-            HorarioFechamento = parametros.HorarioFechamento ?? HorarioFechamentoPadrao, 
+            HorarioFechamento = parametros.HorarioFechamento ?? HorarioFechamentoPadrao,
             DiasFuncionamento = parametros.DiasFuncionamento,
             DatasFolgaFeriado = folgas
         };
     }
+
     public void Salvar(SalvarParametrosRequestDTO requestDto)
     {
         if (requestDto.HorarioAbertura == TimeSpan.Zero)

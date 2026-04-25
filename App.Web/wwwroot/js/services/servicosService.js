@@ -1,5 +1,5 @@
-﻿async function Servicos_Listar() {
-    return Get('Servicos/Listar');
+﻿async function Servicos_ListarAtivos() {
+    return Get('Servicos/ListarAtivos');
 }
 
 async function Servicos_ListarTodos() {

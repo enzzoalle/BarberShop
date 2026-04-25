@@ -26,7 +26,7 @@ public class UsuariosService : IUsuariosService
         }
 
         var nomeNormalizado = requestDto.Nome.Trim();
-        var telefoneNormalizado = TelefoneHelper.Normalizar(requestDto.NumeroTelefone);
+        var telefoneNormalizado = TextoHelper.Normalizar(requestDto.NumeroTelefone);
 
         if (string.IsNullOrWhiteSpace(telefoneNormalizado))
         {
@@ -65,9 +65,7 @@ public class UsuariosService : IUsuariosService
         var nomeNormalizado = requestDto.Usuario.Trim();
         var senhaHash = Criptografia.GeraHash(requestDto.Senha.Trim());
 
-        var usuario = _usuarioRepository
-                          .Query(x => x.Nome.ToLower() == nomeNormalizado.ToLower() && x.Senha == senhaHash)
-                          .FirstOrDefault()
+        var usuario = _usuarioRepository.Query(x => x.Nome.ToLower() == nomeNormalizado.ToLower() && x.Senha == senhaHash).FirstOrDefault()
                       ?? throw new UnauthorizedAccessException("Usuário ou senha inválidos.");
 
         return new UsuarioAutenticadoResponseDTO
@@ -90,8 +88,8 @@ public class UsuariosService : IUsuariosService
     {
         var usuario = _usuarioRepository.FindById(request.Id);
 
-        usuario.Nome           = request.Nome.Trim();
-        usuario.NumeroTelefone = TelefoneHelper.Normalizar(request.NumeroTelefone) ?? usuario.NumeroTelefone;
+        usuario.Nome = request.Nome.Trim();
+        usuario.NumeroTelefone = TextoHelper.Normalizar(request.NumeroTelefone) ?? usuario.NumeroTelefone;
 
         _usuarioRepository.Update(usuario);
     }

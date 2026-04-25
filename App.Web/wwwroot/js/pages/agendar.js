@@ -71,7 +71,7 @@ async function carregarParametrosAgendamento() {
 
 async function carregarServicos() {
     try {
-        servicos = await Servicos_Listar();
+        servicos = await Servicos_ListarAtivos();
         const container = $('#servicosContainer');
         container.empty();
 

@@ -13,22 +13,3 @@ function GetCookie(name) {
     }
     return null;
 }
-
-function DeleteCookie(name) {
-    document.cookie = name + '=; Max-Age=-99999999;';
-    if (name === 'CP-Token') {
-        SetCookie('CP-Token', null);
-    }
-}
-
-function DeleteAllCookies() {
-    DeleteCookie('CP-Token');
-    DeleteCacheCookies();
-}
-
-function DeleteCacheCookies() {
-    DeleteCookie('id-usuario');
-    DeleteCookie('tipo-usuario');
-    DeleteCookie('nome-usuario');
-    DeleteCookie('numero-permissoes');
-}

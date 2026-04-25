@@ -14,12 +14,20 @@ public class ServicosService : IServicosService
         _servicoRepository = servicoRepository;
     }
 
-    public IEnumerable<object> Listar()
+    public IEnumerable<object> ListarAtivos()
     {
         return _servicoRepository
             .Query(x => x.Ativo)
             .OrderBy(x => x.Nome)
-            .Select(x => new { x.Id, x.Nome, x.Duracao, x.Valor, x.Descricao, x.Ativo })
+            .Select(x => new
+            {
+                x.Id,
+                x.Nome,
+                x.Duracao,
+                x.Valor,
+                x.Descricao,
+                x.Ativo
+            })
             .ToList();
     }
 
@@ -28,7 +36,15 @@ public class ServicosService : IServicosService
         return _servicoRepository
             .Query(x => true)
             .OrderBy(x => x.Nome)
-            .Select(x => new { x.Id, x.Nome, x.Duracao, x.Valor, x.Descricao, x.Ativo })
+            .Select(x => new
+            {
+                x.Id,
+                x.Nome,
+                x.Duracao,
+                x.Valor,
+                x.Descricao,
+                x.Ativo
+            })
             .ToList();
     }
 

@@ -78,13 +78,13 @@ function formatWeekdayPt(input) {
     if (!data) {
         return '';
     }
-    const nome = new Intl.DateTimeFormat('pt-BR', {weekday: 'long'}).format(data).replace('-feira', '');
+    const nome = new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(data).replace('-feira', '');
 
     return nome.charAt(0).toUpperCase() + nome.slice(1);
 }
 
 function formatCurrencyBr(valor) {
-    return Number(valor || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+    return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function formatTimeValue(valor) {

@@ -8,7 +8,7 @@ async function carregarHomeCompleta() {
 
     let servicos;
     try {
-        servicos = await Servicos_Listar();
+        servicos = await Servicos_ListarAtivos();
         renderizarServicosHome(servicosContainer, servicos || []);
     } catch {
         servicosContainer.html('<p class="text-danger">Erro ao carregar serviços.</p>');

@@ -14,10 +14,10 @@ public class ServicosController : ControllerBase
         _servicosService = servicosService;
     }
 
-    [HttpGet("Listar")]
-    public IActionResult Listar()
+    [HttpGet("ListarAtivos")]
+    public IActionResult ListarAtivos()
     {
-        var registros = _servicosService.Listar();
+        var registros = _servicosService.ListarAtivos();
         return Ok(registros);
     }
 

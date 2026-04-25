@@ -1,6 +1,6 @@
 ﻿namespace App.Common;
 
-public static class TelefoneHelper
+public static class TextoHelper
 {
     public static string? Normalizar(string? numero)
     {

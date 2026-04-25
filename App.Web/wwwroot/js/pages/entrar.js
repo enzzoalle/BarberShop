@@ -66,14 +66,18 @@ async function criarConta() {
 
 function redirecionarSeJaAutenticado() {
     const usuario = getUsuarioLogado();
-    if (!usuario) return;
+    if (!usuario) {
+        return;
+    }
 
     window.location.replace(isUsuarioAdmin(usuario) ? '/admin' : '/');
 }
 
 function exibirMensagemPosCadastro() {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('cadastro') !== 'sucesso') return;
+    if (params.get('cadastro') !== 'sucesso') {
+        return;
+    }
 
     exibirMensagem('#mensagemAuth', 'Conta criada com sucesso! Faça seu login.', true);
     $('#loginUsuario').trigger('focus');

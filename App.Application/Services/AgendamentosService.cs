@@ -4,7 +4,6 @@ using App.Domain.Enums;
 using App.Domain.Interfaces;
 using App.Domain.Interfaces.Repository;
 using App.Common;
-using Microsoft.EntityFrameworkCore;
 
 namespace App.Application.Services;
 
@@ -86,8 +85,8 @@ public class AgendamentosService : IAgendamentosService
         {
             var horarioFinal = horarioAtual + servico.Duracao;
 
-            var conflita = agendamentosDoDia
-                .Any(x => horarioAtual < x.Inicio + x.Duracao && horarioFinal > x.Inicio);
+            var conflita = agendamentosDoDia.Any(x
+                => horarioAtual < x.Inicio + x.Duracao && horarioFinal > x.Inicio);
 
             if (!conflita)
             {
@@ -137,7 +136,7 @@ public class AgendamentosService : IAgendamentosService
             })
             .FirstOrDefault() ?? throw new InvalidOperationException("Solicitação de agendamento não encontrada.");
 
-        var telefone = TelefoneHelper.Normalizar(dados.NumeroTelefoneCliente);
+        var telefone = TextoHelper.Normalizar(dados.NumeroTelefoneCliente);
         if (string.IsNullOrWhiteSpace(telefone))
         {
             throw new InvalidOperationException("Este cliente não possui telefone para envio no WhatsApp.");
@@ -150,8 +149,7 @@ public class AgendamentosService : IAgendamentosService
             _agendamentoRepository.Update(agendamento);
         }
 
-        var mensagem = MontarMensagemConfirmacao(
-            dados.NomeCliente, dados.NomeServico, dados.DataAgendamento, dados.HorarioAgendamento);
+        var mensagem = MontarMensagemConfirmacao(dados.NomeCliente, dados.NomeServico, dados.DataAgendamento, dados.HorarioAgendamento);
 
         return $"https://wa.me/{telefone}?text={Uri.EscapeDataString(mensagem)}";
     }
@@ -204,7 +202,7 @@ public class AgendamentosService : IAgendamentosService
             throw new InvalidOperationException("O horário selecionado não está mais disponível.");
         }
 
-        var numeroTelefone = TelefoneHelper.Normalizar(requestDto.NumeroTelefoneCliente);
+        var numeroTelefone = TextoHelper.Normalizar(requestDto.NumeroTelefoneCliente);
 
         var cliente = BuscarOuCriarCliente(requestDto.NomeCliente, numeroTelefone);
 
