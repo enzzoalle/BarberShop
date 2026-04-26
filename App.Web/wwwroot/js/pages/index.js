@@ -6,6 +6,8 @@ async function carregarHomeCompleta() {
     const servicosContainer = $('#homeServicosGrid');
     const horariosContainer = $('#homeHorariosGrid');
 
+    carregarInfoGrid();
+
     let servicos;
     try {
         servicos = await Servicos_ListarAtivos();
@@ -22,6 +24,30 @@ async function carregarHomeCompleta() {
     }
 
     await carregarDisponibilidadeSemanal(horariosContainer, servicos[0].id);
+}
+
+async function carregarInfoGrid() {
+    try {
+        const p = await Parametros_Obter();
+
+        const abertura = formatTimeValue(p.horarioAbertura);
+        const fechamento = formatTimeValue(p.horarioFechamento);
+        const diasLabel = formatarDiasFuncionamento(p.diasFuncionamento);
+        $('#infoHorarios').html(`${escapeHtml(diasLabel)}: ${escapeHtml(abertura)} às ${escapeHtml(fechamento)}`);
+
+        if (p.localizacao) {
+            $('#infoLocalizacao').text(p.localizacao);
+        } else {
+            $('#infoLocalizacao').text('Localização não informada.');
+        }
+
+        let contato = p.telefonePrincipal || 'Não informado';
+        if (p.telefoneSecundario) {
+            contato += `<br />${escapeHtml(p.telefoneSecundario)}`;
+        }
+        $('#infoContato').html(escapeHtml(p.telefonePrincipal || 'Não informado') + (p.telefoneSecundario ? `<br />${escapeHtml(p.telefoneSecundario)}` : ''));
+
+    } catch { /* ignora */}
 }
 
 async function carregarDisponibilidadeSemanal(container, servicoId) {
@@ -93,4 +119,13 @@ function renderizarDisponibilidadeHome(container, resultados) {
             </article>
         `);
     });
+}
+
+function formatarDiasFuncionamento(diasFuncionamento) {
+    const map = {
+        1: 'Segunda a Sexta',
+        2: 'Segunda a Sábado',
+        3: 'Todos os dias'
+    };
+    return map[Number(diasFuncionamento)] ?? 'Seg a Sáb';
 }
