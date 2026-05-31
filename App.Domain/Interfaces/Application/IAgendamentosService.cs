@@ -1,6 +1,6 @@
 ﻿using App.Domain.DTO;
 
-namespace App.Domain.Interfaces;
+namespace App.Domain.Interfaces.Application;
 
 public interface IAgendamentosService
 {
@@ -9,4 +9,5 @@ public interface IAgendamentosService
     void Incluir(CriarAgendamentoRequest request);
     void IncluirManual(CriarAgendamentoManualRequestDTO requestDto);
     string AprovarSolicitacao(int id);
+    void IncluirHorarioFixo(CriarHorarioFixoRequest request);
 }

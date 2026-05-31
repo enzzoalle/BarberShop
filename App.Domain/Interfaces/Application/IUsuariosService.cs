@@ -1,7 +1,7 @@
 ﻿using App.Domain.DTO;
 using App.Domain.Entities;
 
-namespace App.Domain.Interfaces;
+namespace App.Domain.Interfaces.Application;
 
 public interface IUsuariosService
 {

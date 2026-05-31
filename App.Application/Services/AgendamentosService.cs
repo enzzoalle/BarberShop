@@ -1,9 +1,9 @@
 ﻿using App.Domain.DTO;
 using App.Domain.Entities;
 using App.Domain.Enums;
-using App.Domain.Interfaces;
+using App.Domain.Interfaces.Application;
 using App.Domain.Interfaces.Repository;
-using App.Common;
+using App.Commom;
 
 namespace App.Application.Services;
 
@@ -24,7 +24,8 @@ public class AgendamentosService : IAgendamentosService
         IRepositoryBase<Servicos> servicoRepository,
         IRepositoryBase<Clientes> clienteRepository,
         IRepositoryBase<Parametros> parametrosRepository,
-        IRepositoryBase<FolgasFeriados> folgaFeriadoRepository)
+        IRepositoryBase<FolgasFeriados> folgaFeriadoRepository
+    )
     {
         _agendamentoRepository = agendamentoRepository;
         _servicoRepository = servicoRepository;
@@ -90,8 +91,7 @@ public class AgendamentosService : IAgendamentosService
         {
             var horarioFinal = horarioAtual + servico.Duracao;
 
-            var conflita = agendamentosDoDia.Any(x
-                => horarioAtual < x.Inicio + x.Duracao && horarioFinal > x.Inicio);
+            var conflita = agendamentosDoDia.Any(x => horarioAtual < x.Inicio + x.Duracao && horarioFinal > x.Inicio);
 
             if (!conflita)
             {
@@ -111,7 +111,7 @@ public class AgendamentosService : IAgendamentosService
             throw new InvalidOperationException("Informe o telefone do cliente.");
         }
 
-        IncluirInterno(new CriarAgendamentoManualRequestDTO
+        var objetoAgendamentoManual = new CriarAgendamentoManualRequestDTO
         {
             NomeCliente = request.NomeCliente,
             NumeroTelefoneCliente = request.NumeroTelefoneCliente,
@@ -119,7 +119,9 @@ public class AgendamentosService : IAgendamentosService
             DataAgendamento = request.DataAgendamento,
             HorarioAgendamento = request.HorarioAgendamento,
             Observacao = request.Observacao
-        }, aprovarAutomaticamente: false);
+        };
+
+        IncluirInterno(objetoAgendamentoManual, aprovarAutomaticamente: false);
     }
 
     public void IncluirManual(CriarAgendamentoManualRequestDTO requestDto)
@@ -141,7 +143,7 @@ public class AgendamentosService : IAgendamentosService
             })
             .FirstOrDefault() ?? throw new InvalidOperationException("Solicitação de agendamento não encontrada.");
 
-        var telefone = TextoHelper.Normalizar(dados.NumeroTelefoneCliente);
+        var telefone = TextoHelper.NormalizarTelefone(dados.NumeroTelefoneCliente);
         if (string.IsNullOrWhiteSpace(telefone))
         {
             throw new InvalidOperationException("Este cliente não possui telefone para envio no WhatsApp.");
@@ -207,7 +209,7 @@ public class AgendamentosService : IAgendamentosService
             throw new InvalidOperationException("O horário selecionado não está mais disponível.");
         }
 
-        var numeroTelefone = TextoHelper.Normalizar(requestDto.NumeroTelefoneCliente);
+        var numeroTelefone = TextoHelper.NormalizarTelefone(requestDto.NumeroTelefoneCliente);
 
         var cliente = BuscarOuCriarCliente(requestDto.NomeCliente, numeroTelefone);
 
@@ -224,6 +226,11 @@ public class AgendamentosService : IAgendamentosService
         };
 
         _agendamentoRepository.Insert(novoAgendamento);
+    }
+
+    public void IncluirHorarioFixo(CriarHorarioFixoRequest request)
+    {
+        // cliente vai escolher um dia da semana (segunda, terça...) e vai escolher a cada quantas semanas esse horário vai ter que repetir, ainda fazendo o esquema de solicitação de agendamento
     }
 
     private Clientes BuscarOuCriarCliente(string nome, string? telefone)
@@ -246,6 +253,7 @@ public class AgendamentosService : IAgendamentosService
                 NumeroTelefone = telefone,
                 DataCriacao = DateTime.Now
             };
+
             _clienteRepository.Insert(cliente);
         }
         else

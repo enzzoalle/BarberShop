@@ -1,8 +1,8 @@
 ﻿using App.Domain.DTO;
 using App.Domain.Entities;
-using App.Domain.Interfaces;
+using App.Domain.Interfaces.Application;
 using App.Domain.Interfaces.Repository;
-using App.Common;
+using App.Commom;
 
 namespace App.Application.Services;
 
@@ -26,7 +26,7 @@ public class UsuariosService : IUsuariosService
         }
 
         var nomeNormalizado = requestDto.Nome.Trim();
-        var telefoneNormalizado = TextoHelper.Normalizar(requestDto.NumeroTelefone);
+        var telefoneNormalizado = TextoHelper.NormalizarTelefone(requestDto.NumeroTelefone);
 
         if (string.IsNullOrWhiteSpace(telefoneNormalizado))
         {
@@ -89,7 +89,7 @@ public class UsuariosService : IUsuariosService
         var usuario = _usuarioRepository.FindById(request.Id);
 
         usuario.Nome = request.Nome.Trim();
-        usuario.NumeroTelefone = TextoHelper.Normalizar(request.NumeroTelefone) ?? usuario.NumeroTelefone;
+        usuario.NumeroTelefone = TextoHelper.NormalizarTelefone(request.NumeroTelefone) ?? usuario.NumeroTelefone;
 
         _usuarioRepository.Update(usuario);
     }

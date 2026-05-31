@@ -1,5 +1,5 @@
 ﻿using App.Domain.DTO;
-using App.Domain.Interfaces;
+using App.Domain.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 
 namespace App.Api.Controllers;
@@ -63,6 +63,20 @@ public class AgendamentosController : ControllerBase
         {
             var linkWhatsapp = _agendamentosService.AprovarSolicitacao(id);
             return Ok(new { url = linkWhatsapp });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+    
+    [HttpPost("IncluirHorarioFixo")]
+    public IActionResult IncluirHorarioFixo([FromBody] CriarHorarioFixoRequest requestDto)
+    {
+        try
+        {
+            _agendamentosService.IncluirHorarioFixo(requestDto);
+            return Ok("Horário fixo incluído com sucesso!");
         }
         catch (InvalidOperationException ex)
         {

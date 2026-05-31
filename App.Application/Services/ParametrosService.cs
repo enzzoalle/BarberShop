@@ -1,7 +1,7 @@
 ﻿using App.Domain.DTO;
 using App.Domain.Entities;
 using App.Domain.Enums;
-using App.Domain.Interfaces;
+using App.Domain.Interfaces.Application;
 using App.Domain.Interfaces.Repository;
 
 namespace App.Application.Services;
@@ -16,7 +16,8 @@ public class ParametrosService : IParametrosService
 
     public ParametrosService(
         IRepositoryBase<Parametros> parametrosRepository,
-        IRepositoryBase<FolgasFeriados> folgaFeriadoRepository)
+        IRepositoryBase<FolgasFeriados> folgaFeriadoRepository
+    )
     {
         _parametrosRepository = parametrosRepository;
         _folgaFeriadoRepository = folgaFeriadoRepository;
@@ -137,11 +138,13 @@ public class ParametrosService : IParametrosService
         var paraInserir = datasDesejadas.Where(x => !datasExistentes.Contains(x)).ToList();
         foreach (var data in paraInserir)
         {
-            _folgaFeriadoRepository.Insert(new FolgasFeriados
+            var objetoFolgaFeriado = new FolgasFeriados
             {
                 ParametrosId = parametrosId,
                 Data = data
-            });
+            };
+
+            _folgaFeriadoRepository.Insert(objetoFolgaFeriado);
         }
     }
 }

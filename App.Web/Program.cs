@@ -1,6 +1,13 @@
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddRazorPages();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
+}
+else
+{
+    builder.Services.AddRazorPages();
+}
 
 var app = builder.Build();
 
