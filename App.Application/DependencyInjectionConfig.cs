@@ -12,5 +12,6 @@ public static class DependencyInjectionConfig
         services.AddTransient<IServicosService, ServicosService>();
         services.AddTransient<IAgendamentosService, AgendamentosService>();
         services.AddTransient<IParametrosService, ParametrosService>();
+        services.AddTransient<IHorariosFixosService, HorariosFixosService>();
     }
 }

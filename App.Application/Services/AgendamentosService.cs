@@ -3,7 +3,7 @@ using App.Domain.Entities;
 using App.Domain.Enums;
 using App.Domain.Interfaces.Application;
 using App.Domain.Interfaces.Repository;
-using App.Commom;
+using App.Common;
 
 namespace App.Application.Services;
 
@@ -46,7 +46,7 @@ public class AgendamentosService : IAgendamentosService
                 x.DataAgendamento,
                 x.HorarioAgendamento,
                 x.StatusAgendamento,
-                Clientes = new { x.Clientes.Nome, x.Clientes.NumeroTelefone },
+                Clientes = new { x.Clientes.Nome, x.Clientes.NumeroTelefone, FotoPerfil = x.Clientes.Usuario != null ? x.Clientes.Usuario.FotoPerfil : null },
                 Servicos = new { x.Servicos.Nome, x.Servicos.Duracao, x.Servicos.Valor }
             })
             .ToList();

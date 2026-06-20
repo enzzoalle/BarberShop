@@ -29,6 +29,7 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
+builder.Services.AddHostedService<App.Api.Workers.AgendadorFixoWorker>();
 
 var app = builder.Build();
 
@@ -38,6 +39,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("WebClient");
 app.MapControllers();
 

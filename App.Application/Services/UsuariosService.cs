@@ -1,8 +1,8 @@
-﻿using App.Domain.DTO;
+using App.Domain.DTO;
 using App.Domain.Entities;
 using App.Domain.Interfaces.Application;
 using App.Domain.Interfaces.Repository;
-using App.Commom;
+using App.Common;
 
 namespace App.Application.Services;
 
@@ -74,7 +74,8 @@ public class UsuariosService : IUsuariosService
             Nome = usuario.Nome,
             Usuario = usuario.Nome,
             NumeroTelefone = usuario.NumeroTelefone,
-            IsAdmin = usuario.IsAdmin
+            IsAdmin = usuario.IsAdmin,
+            FotoPerfil = usuario.FotoPerfil
         };
     }
 
@@ -91,6 +92,13 @@ public class UsuariosService : IUsuariosService
         usuario.Nome = request.Nome.Trim();
         usuario.NumeroTelefone = TextoHelper.NormalizarTelefone(request.NumeroTelefone) ?? usuario.NumeroTelefone;
 
+        _usuarioRepository.Update(usuario);
+    }
+
+    public void AtualizarFotoPerfil(int id, string fotoPerfil)
+    {
+        var usuario = _usuarioRepository.FindById(id);
+        usuario.FotoPerfil = fotoPerfil;
         _usuarioRepository.Update(usuario);
     }
 }

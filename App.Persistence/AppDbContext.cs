@@ -1,4 +1,4 @@
-﻿using App.Domain.Entities;
+using App.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace App.Persistence;
@@ -47,4 +47,5 @@ public class AppDbContext : DbContext
     public DbSet<Servicos> Servicos { get; set; }
     public DbSet<Clientes> Clientes { get; set; }
     public DbSet<FolgasFeriados> FolgasFeriados { get; set; }
+    public DbSet<HorariosFixos> HorariosFixos { get; set; }
 }

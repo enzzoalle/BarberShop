@@ -1,0 +1,68 @@
+﻿@page
+@model App.Web.Pages.PerfilModel
+@{
+    ViewData["Title"] = "Meu Perfil";
+}
+<div class="container py-5">
+    <h2 class="mb-4">Meu Perfil</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card p-3 text-center mb-4 glass-card">
+                <div id="fotoContainer" class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center bg-secondary text-light" style="width: 150px; height: 150px; object-fit: cover; font-size: 0.9rem; overflow: hidden;">
+                    <span id="txtSemFoto">Nenhuma foto cadastrada</span>
+                    <img id="imgPerfil" src="" class="w-100 h-100 d-none" style="object-fit:cover" />
+                </div>
+                <form id="formFotoPerfil">
+                    <input type="file" id="inputFoto" class="form-control mb-2" accept=".png, .jpg, .jpeg" required />
+                    <button type="submit" class="btn btn-outline-light w-100">Atualizar Foto</button>
+                </form>
+                <div id="msgFoto" class="mt-2 text-info"></div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card p-4 glass-card">
+                <h4 class="mb-3 text-light">Meus Horários Fixos</h4>
+                <p class="text-light text-opacity-75">Programe um agendamento para se repetir a cada X semanas. Ele será solicitado automaticamente todo domingo.</p>
+                
+                <form id="formHorarioFixo" class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">Serviço</label>
+                        <select id="hfServico" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Dia da Semana</label>
+                        <select id="hfDiaSemana" class="form-select" required>
+                            <option value="1">Segunda-feira</option>
+                            <option value="2">Terça-feira</option>
+                            <option value="3">Quarta-feira</option>
+                            <option value="4">Quinta-feira</option>
+                            <option value="5">Sexta-feira</option>
+                            <option value="6">Sábado</option>
+                            <option value="0">Domingo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Horário</label>
+                        <input type="time" id="hfHorario" class="form-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Repetir a cada (Semanas)</label>
+                        <input type="number" id="hfSemanas" class="form-control" min="1" max="52" value="1" required />
+                    </div>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-success mt-2">Adicionar Horário Fixo</button>
+                        <div id="msgHf" class="mt-2 text-info"></div>
+                    </div>
+                </form>
+
+                <h5 class="text-light">Lista de Horários</h5>
+                <ul class="list-group" id="listaHorariosFixos">
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/perfil.js" asp-append-version="true"></script>
+}

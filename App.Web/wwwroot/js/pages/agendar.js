@@ -1,4 +1,4 @@
-﻿let servicos = [];
+let servicos = [];
 let servicoSelecionadoId = null;
 let horarioSelecionado = null;
 let calendarioInstancia = null;
@@ -151,6 +151,7 @@ async function atualizarHorarios() {
             $('#horarioSelecionado').val(horarioSelecionado);
         });
     } catch (erro) {
+        if (erro && erro.statusText === 'abort') return;
         console.error(erro);
         container.html('<p class="text-danger">Erro ao consultar horários.</p>');
     }

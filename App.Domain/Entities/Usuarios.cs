@@ -1,4 +1,4 @@
-﻿namespace App.Domain.Entities;
+namespace App.Domain.Entities;
 
 public class Usuarios
 {
@@ -8,5 +8,6 @@ public class Usuarios
     public string Senha { get; set; }
     public string NumeroTelefone { get; set; }
     public bool IsAdmin { get; set; }
+    public string? FotoPerfil { get; set; }
     public DateTime DataCriacao { get; set; }
 }

@@ -69,7 +69,7 @@ public class AgendamentosController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
-    
+
     [HttpPost("IncluirHorarioFixo")]
     public IActionResult IncluirHorarioFixo([FromBody] CriarHorarioFixoRequest requestDto)
     {

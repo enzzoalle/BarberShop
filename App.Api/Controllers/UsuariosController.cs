@@ -1,4 +1,4 @@
-﻿using App.Domain.DTO;
+using App.Domain.DTO;
 using App.Domain.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 
@@ -86,6 +86,32 @@ public class UsuariosController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost("UploadFotoPerfil")]
+    public async Task<IActionResult> UploadFotoPerfil([FromQuery] int id, IFormFile file)
+    {
+        try
+        {
+            var extensoes = new[] { ".png", ".jpg", ".jpeg" };
+            var ext = Path.GetExtension(file.FileName).ToLower();
+            if (!extensoes.Contains(ext))
+            {
+                return BadRequest("Formato de imagem inválido.");
+            }
+
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+            var fileBytes = ms.ToArray();
+            var base64 = Convert.ToBase64String(fileBytes);
+
+            _usuariosService.AtualizarFotoPerfil(id, base64);
+            return Ok(new { url = base64 });
+        }
+        catch (Exception)
+        {
+            return BadRequest("Erro ao fazer upload da foto.");
         }
     }
 }

@@ -6,7 +6,7 @@ async function carregarHomeCompleta() {
     const servicosContainer = $('#homeServicosGrid');
     const horariosContainer = $('#homeHorariosGrid');
 
-    carregarInfoGrid();
+    await carregarInfoGrid();
 
     let servicos;
     try {

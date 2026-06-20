@@ -236,12 +236,16 @@ async function carregarSolicitacoesPendentes() {
         body.empty();
         pendentes.forEach(function (item) {
             const { id, dataAgendamento, horarioAgendamento, clientes = {}, servicos = {} } = item;
+            
+            const fotoHtml = clientes.fotoPerfil
+                ? `<img src="data:image/jpeg;base64,${clientes.fotoPerfil}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;" />`
+                : `<div class="rounded-circle bg-secondary text-light d-inline-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px; font-size: 0.6rem;"><i class="bi bi-person"></i></div>`;
 
             body.append(`
                 <tr>
                     <td>${formatDateBr(String(dataAgendamento).slice(0, 10))}</td>
                     <td>${formatTimeValue(horarioAgendamento)}</td>
-                    <td>${escapeHtml(clientes.nome || '-')}</td>
+                    <td class="d-flex align-items-center">${fotoHtml}${escapeHtml(clientes.nome || '-')}</td>
                     <td>${escapeHtml(clientes.numeroTelefone || '-')}</td>
                     <td>${escapeHtml(servicos.nome || '-')}</td>
                     <td>
