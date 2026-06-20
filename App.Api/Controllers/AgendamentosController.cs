@@ -34,11 +34,11 @@ public class AgendamentosController : ControllerBase
         try
         {
             _agendamentosService.Incluir(request);
-            return Ok("Solicitação de agendamento enviada com sucesso!");
+            return Ok(new { mensagem = "Solicitação de agendamento enviada com sucesso!" });
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new { erro = ex.Message });
         }
     }
 
@@ -63,20 +63,6 @@ public class AgendamentosController : ControllerBase
         {
             var linkWhatsapp = _agendamentosService.AprovarSolicitacao(id);
             return Ok(new { url = linkWhatsapp });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-
-    [HttpPost("IncluirHorarioFixo")]
-    public IActionResult IncluirHorarioFixo([FromBody] CriarHorarioFixoRequest requestDto)
-    {
-        try
-        {
-            _agendamentosService.IncluirHorarioFixo(requestDto);
-            return Ok("Horário fixo incluído com sucesso!");
         }
         catch (InvalidOperationException ex)
         {

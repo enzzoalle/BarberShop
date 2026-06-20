@@ -189,17 +189,10 @@ public class AgendamentosService : IAgendamentosService
 
     private void IncluirInterno(CriarAgendamentoManualRequestDTO requestDto, bool aprovarAutomaticamente)
     {
-        if (string.IsNullOrWhiteSpace(requestDto.NomeCliente))
-        {
-            throw new InvalidOperationException("Informe o nome do cliente.");
-        }
-
         if (DataEstaBloqueada(requestDto.DataAgendamento))
         {
             throw new InvalidOperationException("A data selecionada está bloqueada por folga ou feriado.");
         }
-
-        var servico = _servicoRepository.FindById(requestDto.ServicoId);
 
         var horarioSolicitado = requestDto.HorarioAgendamento.ToString(@"hh\:mm");
         var horariosDisponiveis = ListarHorariosDisponiveis(requestDto.DataAgendamento, requestDto.ServicoId);
@@ -209,8 +202,8 @@ public class AgendamentosService : IAgendamentosService
             throw new InvalidOperationException("O horário selecionado não está mais disponível.");
         }
 
+        var servico = _servicoRepository.FindById(requestDto.ServicoId);
         var numeroTelefone = TextoHelper.NormalizarTelefone(requestDto.NumeroTelefoneCliente);
-
         var cliente = BuscarOuCriarCliente(requestDto.NomeCliente, numeroTelefone);
 
         var novoAgendamento = new Agendamentos
@@ -226,11 +219,6 @@ public class AgendamentosService : IAgendamentosService
         };
 
         _agendamentoRepository.Insert(novoAgendamento);
-    }
-
-    public void IncluirHorarioFixo(CriarHorarioFixoRequest request)
-    {
-        // cliente vai escolher um dia da semana (segunda, terça...) e vai escolher a cada quantas semanas esse horário vai ter que repetir, ainda fazendo o esquema de solicitação de agendamento
     }
 
     private Clientes BuscarOuCriarCliente(string nome, string? telefone)

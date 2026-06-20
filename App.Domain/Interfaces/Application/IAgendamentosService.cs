@@ -9,5 +9,4 @@ public interface IAgendamentosService
     void Incluir(CriarAgendamentoRequest request);
     void IncluirManual(CriarAgendamentoManualRequestDTO requestDto);
     string AprovarSolicitacao(int id);
-    void IncluirHorarioFixo(CriarHorarioFixoRequest request);
 }

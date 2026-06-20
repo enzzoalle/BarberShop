@@ -157,7 +157,17 @@ async function atualizarHorarios() {
     }
 }
 
-async function confirmarAgendamento() {
+async function confirmarAgendamento(e) {
+    if (e) {
+        e.preventDefault();
+    }
+
+    const $btnConfirmar = $('#btnConfirmarAgendamento');
+
+    if ($btnConfirmar.prop('disabled')) {
+        return;
+    }
+
     const payload = {
         nomeCliente: $('#nomeCliente').val().trim(),
         numeroTelefoneCliente: $('#numeroTelefoneCliente').val().trim(),
@@ -173,6 +183,8 @@ async function confirmarAgendamento() {
     }
 
     try {
+        $btnConfirmar.prop('disabled', true).text('Enviando...');
+
         await Agendamentos_Incluir(payload);
         exibirMensagem('#mensagemAgendamento', 'Solicitação enviada com sucesso! Aguarde a aprovação do administrador.', true);
 
@@ -184,6 +196,9 @@ async function confirmarAgendamento() {
         preencherDataPadrao();
     } catch (erro) {
         console.error(erro);
-        exibirMensagem('#mensagemAgendamento', 'Não foi possível enviar sua solicitação. Tente novamente.', false);
+        const msgErro = erro.response?.data || 'Não foi possível enviar sua solicitação. Tente novamente.';
+        exibirMensagem('#mensagemAgendamento', msgErro, false);
+    } finally {
+        $btnConfirmar.prop('disabled', false).text('Confirmar Agendamento');
     }
 }
