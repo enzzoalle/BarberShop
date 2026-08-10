@@ -42,6 +42,9 @@ namespace App.Persistence.Migrations
                     b.Property<bool>("FoiPago")
                         .HasColumnType("boolean");
 
+                    b.Property<int?>("FuncionarioId")
+                        .HasColumnType("integer");
+
                     b.Property<TimeSpan>("HorarioAgendamento")
                         .HasColumnType("interval");
 
@@ -57,6 +60,8 @@ namespace App.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClientesId");
+
+                    b.HasIndex("FuncionarioId");
 
                     b.HasIndex("ServicosId");
 
@@ -115,6 +120,66 @@ namespace App.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("FolgasFeriados");
+                });
+
+            modelBuilder.Entity("App.Domain.Entities.Funcionarios", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId")
+                        .IsUnique();
+
+                    b.ToTable("Funcionarios");
+                });
+
+            modelBuilder.Entity("App.Domain.Entities.HorariosFixos", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("DiaDaSemana")
+                        .HasColumnType("integer");
+
+                    b.Property<TimeSpan>("Horario")
+                        .HasColumnType("interval");
+
+                    b.Property<int>("RepetirACadaSemanas")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ServicoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServicoId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("HorariosFixos");
                 });
 
             modelBuilder.Entity("App.Domain.Entities.Parametros", b =>
@@ -191,6 +256,9 @@ namespace App.Persistence.Migrations
                     b.Property<DateTime>("DataCriacao")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<string>("FotoPerfil")
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsAdmin")
                         .HasColumnType("boolean");
 
@@ -225,6 +293,11 @@ namespace App.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("App.Domain.Entities.Funcionarios", "Funcionario")
+                        .WithMany()
+                        .HasForeignKey("FuncionarioId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("App.Domain.Entities.Servicos", "Servicos")
                         .WithMany("Agendamentos")
                         .HasForeignKey("ServicosId")
@@ -232,6 +305,8 @@ namespace App.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Clientes");
+
+                    b.Navigation("Funcionario");
 
                     b.Navigation("Servicos");
                 });
@@ -257,6 +332,36 @@ namespace App.Persistence.Migrations
                     b.Navigation("Parametros");
                 });
 
+            modelBuilder.Entity("App.Domain.Entities.Funcionarios", b =>
+                {
+                    b.HasOne("App.Domain.Entities.Usuarios", "Usuario")
+                        .WithOne("Funcionario")
+                        .HasForeignKey("App.Domain.Entities.Funcionarios", "UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("App.Domain.Entities.HorariosFixos", b =>
+                {
+                    b.HasOne("App.Domain.Entities.Servicos", "Servico")
+                        .WithMany()
+                        .HasForeignKey("ServicoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("App.Domain.Entities.Usuarios", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Servico");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("App.Domain.Entities.Clientes", b =>
                 {
                     b.Navigation("Agendamentos");
@@ -275,6 +380,8 @@ namespace App.Persistence.Migrations
             modelBuilder.Entity("App.Domain.Entities.Usuarios", b =>
                 {
                     b.Navigation("Cliente");
+
+                    b.Navigation("Funcionario");
                 });
 #pragma warning restore 612, 618
         }

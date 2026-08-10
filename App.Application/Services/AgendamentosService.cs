@@ -3,7 +3,7 @@ using App.Domain.Entities;
 using App.Domain.Enums;
 using App.Domain.Interfaces.Application;
 using App.Domain.Interfaces.Repository;
-using App.Commom;
+using App.Common;
 
 namespace App.Application.Services;
 
@@ -16,6 +16,8 @@ public class AgendamentosService : IAgendamentosService
     private readonly IRepositoryBase<Agendamentos> _agendamentoRepository;
     private readonly IRepositoryBase<Servicos> _servicoRepository;
     private readonly IRepositoryBase<Clientes> _clienteRepository;
+    private readonly IRepositoryBase<Usuarios> _usuarioRepository;
+    private readonly IRepositoryBase<Funcionarios> _funcionarioRepository;
     private readonly IRepositoryBase<Parametros> _parametrosRepository;
     private readonly IRepositoryBase<FolgasFeriados> _folgaFeriadoRepository;
 
@@ -23,6 +25,8 @@ public class AgendamentosService : IAgendamentosService
         IRepositoryBase<Agendamentos> agendamentoRepository,
         IRepositoryBase<Servicos> servicoRepository,
         IRepositoryBase<Clientes> clienteRepository,
+        IRepositoryBase<Usuarios> usuarioRepository,
+        IRepositoryBase<Funcionarios> funcionarioRepository,
         IRepositoryBase<Parametros> parametrosRepository,
         IRepositoryBase<FolgasFeriados> folgaFeriadoRepository
     )
@@ -30,6 +34,8 @@ public class AgendamentosService : IAgendamentosService
         _agendamentoRepository = agendamentoRepository;
         _servicoRepository = servicoRepository;
         _clienteRepository = clienteRepository;
+        _usuarioRepository = usuarioRepository;
+        _funcionarioRepository = funcionarioRepository;
         _parametrosRepository = parametrosRepository;
         _folgaFeriadoRepository = folgaFeriadoRepository;
     }
@@ -46,20 +52,55 @@ public class AgendamentosService : IAgendamentosService
                 x.DataAgendamento,
                 x.HorarioAgendamento,
                 x.StatusAgendamento,
-                Clientes = new { x.Clientes.Nome, x.Clientes.NumeroTelefone },
-                Servicos = new { x.Servicos.Nome, x.Servicos.Duracao, x.Servicos.Valor }
+                Clientes = new { x.Clientes.Nome, x.Clientes.NumeroTelefone, FotoPerfil = x.Clientes.Usuario != null ? x.Clientes.Usuario.FotoPerfil : null },
+                Servicos = new { x.Servicos.Nome, x.Servicos.Duracao, x.Servicos.Valor },
+                Funcionario = x.Funcionario != null ? new { x.Funcionario.Usuario.Nome } : null
             })
             .ToList();
     }
 
-    public IEnumerable<string> ListarHorariosDisponiveis(DateTime data, int servicoId)
+    public IEnumerable<AgendamentoDashboardDiaDTO> ObterDashboardUltimos7Dias(int? funcionarioId)
+    {
+        var hoje = DateTime.Today;
+        var inicio = hoje.AddDays(-6);
+
+        var datasCriacao = _agendamentoRepository
+            .Query(x => x.DataCriacao.Date >= inicio
+                        && x.DataCriacao.Date <= hoje
+                        && (funcionarioId == null || x.FuncionarioId == funcionarioId))
+            .Select(x => x.DataCriacao.Date)
+            .ToList();
+
+        var contagemPorDia = datasCriacao
+            .GroupBy(x => x)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        return Enumerable.Range(0, 7)
+            .Select(offset => inicio.AddDays(offset))
+            .Select(dia => new AgendamentoDashboardDiaDTO
+            {
+                Data = dia,
+                Quantidade = contagemPorDia.GetValueOrDefault(dia, 0)
+            })
+            .ToList();
+    }
+
+    public IEnumerable<string> ListarHorariosDisponiveis(DateTime data, int servicoId, int funcionarioId)
     {
         if (data.Date < DateTime.Today)
         {
             return [];
         }
 
-        var servico = _servicoRepository.FindById(servicoId);
+        var servico = _servicoRepository.FindById(servicoId)
+                      ?? throw new InvalidOperationException("Serviço não encontrado.");
+
+        var funcionarioAtivo = _funcionarioRepository.Query(x => x.Id == funcionarioId && x.Ativo).Any();
+        if (!funcionarioAtivo)
+        {
+            throw new InvalidOperationException("Funcionário não encontrado ou inativo.");
+        }
+
         var expediente = ObterExpediente();
 
         if (!DiaDisponivelParaAgendamento(data, expediente.DiasFuncionamento) || DataEstaBloqueada(data))
@@ -71,6 +112,7 @@ public class AgendamentosService : IAgendamentosService
 
         var agendamentosDoDia = _agendamentoRepository
             .Query(x => x.DataAgendamento.Date == dataSelecionada
+                        && x.FuncionarioId == funcionarioId
                         && x.StatusAgendamento != StatusAgendamentoEnum.Cancelado)
             .Select(x => new { Inicio = x.HorarioAgendamento, x.Servicos.Duracao })
             .ToList();
@@ -116,6 +158,7 @@ public class AgendamentosService : IAgendamentosService
             NomeCliente = request.NomeCliente,
             NumeroTelefoneCliente = request.NumeroTelefoneCliente,
             ServicoId = request.ServicoId,
+            FuncionarioId = request.FuncionarioId,
             DataAgendamento = request.DataAgendamento,
             HorarioAgendamento = request.HorarioAgendamento,
             Observacao = request.Observacao
@@ -151,7 +194,8 @@ public class AgendamentosService : IAgendamentosService
 
         if (dados.StatusAgendamento != StatusAgendamentoEnum.Aprovado)
         {
-            var agendamento = _agendamentoRepository.FindById(id);
+            var agendamento = _agendamentoRepository.FindById(id)
+                              ?? throw new InvalidOperationException("Solicitação de agendamento não encontrada.");
             agendamento.StatusAgendamento = StatusAgendamentoEnum.Aprovado;
             _agendamentoRepository.Update(agendamento);
         }
@@ -189,34 +233,29 @@ public class AgendamentosService : IAgendamentosService
 
     private void IncluirInterno(CriarAgendamentoManualRequestDTO requestDto, bool aprovarAutomaticamente)
     {
-        if (string.IsNullOrWhiteSpace(requestDto.NomeCliente))
-        {
-            throw new InvalidOperationException("Informe o nome do cliente.");
-        }
-
         if (DataEstaBloqueada(requestDto.DataAgendamento))
         {
             throw new InvalidOperationException("A data selecionada está bloqueada por folga ou feriado.");
         }
 
-        var servico = _servicoRepository.FindById(requestDto.ServicoId);
-
         var horarioSolicitado = requestDto.HorarioAgendamento.ToString(@"hh\:mm");
-        var horariosDisponiveis = ListarHorariosDisponiveis(requestDto.DataAgendamento, requestDto.ServicoId);
+        var horariosDisponiveis = ListarHorariosDisponiveis(requestDto.DataAgendamento, requestDto.ServicoId, requestDto.FuncionarioId);
 
         if (!horariosDisponiveis.Contains(horarioSolicitado))
         {
             throw new InvalidOperationException("O horário selecionado não está mais disponível.");
         }
 
+        var servico = _servicoRepository.FindById(requestDto.ServicoId)
+                      ?? throw new InvalidOperationException("Serviço não encontrado.");
         var numeroTelefone = TextoHelper.NormalizarTelefone(requestDto.NumeroTelefoneCliente);
-
         var cliente = BuscarOuCriarCliente(requestDto.NomeCliente, numeroTelefone);
 
         var novoAgendamento = new Agendamentos
         {
             Clientes = cliente,
             Servicos = servico,
+            FuncionarioId = requestDto.FuncionarioId,
             DataAgendamento = requestDto.DataAgendamento.Date,
             HorarioAgendamento = requestDto.HorarioAgendamento,
             Observacao = string.IsNullOrWhiteSpace(requestDto.Observacao) ? null : requestDto.Observacao.Trim(),
@@ -226,11 +265,6 @@ public class AgendamentosService : IAgendamentosService
         };
 
         _agendamentoRepository.Insert(novoAgendamento);
-    }
-
-    public void IncluirHorarioFixo(CriarHorarioFixoRequest request)
-    {
-        // cliente vai escolher um dia da semana (segunda, terça...) e vai escolher a cada quantas semanas esse horário vai ter que repetir, ainda fazendo o esquema de solicitação de agendamento
     }
 
     private Clientes BuscarOuCriarCliente(string nome, string? telefone)
@@ -245,12 +279,17 @@ public class AgendamentosService : IAgendamentosService
                 .FirstOrDefault();
         }
 
+        var usuarioVinculado = string.IsNullOrWhiteSpace(telefone)
+            ? null
+            : _usuarioRepository.Query(x => x.NumeroTelefone == telefone).FirstOrDefault();
+
         if (cliente is null)
         {
             cliente = new Clientes
             {
                 Nome = nome.Trim(),
                 NumeroTelefone = telefone,
+                UsuarioId = usuarioVinculado?.Id,
                 DataCriacao = DateTime.Now
             };
 
@@ -260,6 +299,7 @@ public class AgendamentosService : IAgendamentosService
         {
             cliente.Nome = nome.Trim();
             cliente.NumeroTelefone = telefone;
+            cliente.UsuarioId = usuarioVinculado?.Id ?? cliente.UsuarioId;
             _clienteRepository.Update(cliente);
         }
 

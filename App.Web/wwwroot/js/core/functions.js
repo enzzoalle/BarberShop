@@ -187,12 +187,14 @@ function atualizarEstadoAuthLayout() {
     const $sair = $('#btnSair');
     const $welcome = $('#authWelcome');
     const $admin = $('#navPainelAdminItem');
+    const $perfil = $('#navPerfilItem');
 
     if (!usuario) {
         $entrar.removeClass('d-none').attr('aria-hidden', 'false');
         $sair.addClass('d-none');
         $welcome.addClass('d-none').text('');
         $admin.addClass('d-none');
+        $perfil.addClass('d-none');
         return;
     }
 
@@ -200,6 +202,7 @@ function atualizarEstadoAuthLayout() {
     $entrar.addClass('d-none').attr('aria-hidden', 'true');
     $sair.removeClass('d-none');
     $admin.toggleClass('d-none', !isUsuarioAdmin(usuario));
+    $perfil.removeClass('d-none');
 }
 
 $(document).ready(function () {

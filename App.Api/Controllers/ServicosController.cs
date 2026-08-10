@@ -31,28 +31,14 @@ public class ServicosController : ControllerBase
     [HttpPost("Incluir")]
     public IActionResult Incluir([FromBody] CriarServicoRequestDTO request)
     {
-        try
-        {
-            _servicosService.Incluir(request);
-            return Ok("Serviço cadastrado com sucesso.");
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        _servicosService.Incluir(request);
+        return Ok("Serviço cadastrado com sucesso.");
     }
 
     [HttpPost("AlterarStatus")]
     public IActionResult AlterarStatus([FromQuery] int id, [FromQuery] bool ativo)
     {
-        try
-        {
-            _servicosService.AlterarStatus(id, ativo);
-            return Ok("Status do serviço atualizado.");
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        _servicosService.AlterarStatus(id, ativo);
+        return Ok("Status do serviço atualizado.");
     }
 }

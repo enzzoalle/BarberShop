@@ -22,65 +22,37 @@ public class AgendamentosController : ControllerBase
     }
 
     [HttpGet("ListarHorariosDisponiveis")]
-    public IActionResult ListarHorariosDisponiveis([FromQuery] DateTime data, [FromQuery] int servicoId)
+    public IActionResult ListarHorariosDisponiveis([FromQuery] DateTime data, [FromQuery] int servicoId, [FromQuery] int funcionarioId)
     {
-        var horarios = _agendamentosService.ListarHorariosDisponiveis(data, servicoId);
+        var horarios = _agendamentosService.ListarHorariosDisponiveis(data, servicoId, funcionarioId);
         return Ok(horarios);
+    }
+
+    [HttpGet("DashboardUltimos7Dias")]
+    public IActionResult DashboardUltimos7Dias([FromQuery] int? funcionarioId)
+    {
+        var dashboard = _agendamentosService.ObterDashboardUltimos7Dias(funcionarioId);
+        return Ok(dashboard);
     }
 
     [HttpPost("Incluir")]
     public IActionResult Incluir([FromBody] CriarAgendamentoRequest request)
     {
-        try
-        {
-            _agendamentosService.Incluir(request);
-            return Ok("Solicitação de agendamento enviada com sucesso!");
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        _agendamentosService.Incluir(request);
+        return Ok(new { mensagem = "Solicitação de agendamento enviada com sucesso!" });
     }
 
     [HttpPost("IncluirManual")]
     public IActionResult IncluirManual([FromBody] CriarAgendamentoManualRequestDTO requestDto)
     {
-        try
-        {
-            _agendamentosService.IncluirManual(requestDto);
-            return Ok("Agendamento manual realizado com sucesso!");
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        _agendamentosService.IncluirManual(requestDto);
+        return Ok("Agendamento manual realizado com sucesso!");
     }
 
     [HttpPost("AprovarSolicitacao")]
     public IActionResult AprovarSolicitacao([FromQuery] int id)
     {
-        try
-        {
-            var linkWhatsapp = _agendamentosService.AprovarSolicitacao(id);
-            return Ok(new { url = linkWhatsapp });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-    
-    [HttpPost("IncluirHorarioFixo")]
-    public IActionResult IncluirHorarioFixo([FromBody] CriarHorarioFixoRequest requestDto)
-    {
-        try
-        {
-            _agendamentosService.IncluirHorarioFixo(requestDto);
-            return Ok("Horário fixo incluído com sucesso!");
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var linkWhatsapp = _agendamentosService.AprovarSolicitacao(id);
+        return Ok(new { url = linkWhatsapp });
     }
 }

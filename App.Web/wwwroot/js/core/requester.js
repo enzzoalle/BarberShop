@@ -1,8 +1,8 @@
-﻿const API_FALLBACK_DEV = 'https://localhost:7243/';
+const API_FALLBACK_DEV = 'https://localhost:7243/';
 
-async function Get(url) {
+async function Get(url, options = {}) {
     return new Promise((resolve, reject) => {
-        $.ajax({
+        const xhr = $.ajax({
             type: 'GET',
             url: ResolveUrl(url),
             headers: _GetAuthHeader(),
@@ -11,9 +11,12 @@ async function Get(url) {
                 resolve(response);
             },
             error: function (response) {
-                _OnError(response, reject);
+                _OnError(response, reject, url);
             }
         });
+        if (options.signal) {
+            options.signal.addEventListener('abort', () => xhr.abort());
+        }
     });
 }
 
@@ -32,7 +35,27 @@ async function Post(url, data) {
                 resolve(response);
             },
             error: function (response) {
-                _OnError(response, reject);
+                _OnError(response, reject, url);
+            }
+        });
+    });
+}
+
+async function PostFile(url, formData) {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'POST',
+            url: ResolveUrl(url),
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: _GetAuthHeader(),
+            success: function (response) {
+                _AtualizarTokenSePresente(response);
+                resolve(response);
+            },
+            error: function (response) {
+                _OnError(response, reject, url);
             }
         });
     });
@@ -49,7 +72,7 @@ async function Delete(url) {
                 resolve(response);
             },
             error: function (response) {
-                _OnError(response, reject);
+                _OnError(response, reject, url);
             }
         });
     });
@@ -83,8 +106,8 @@ function _GetAuthHeader() {
     return {'Authorization': 'Bearer ' + GetCookie('CP-Token')};
 }
 
-function _OnError(response, reject) {
-    if (response.status === 401 || response.status === 403) {
+function _OnError(response, reject, url) {
+    if ((response.status === 401 || response.status === 403) && (!url || !url.includes('Logar'))) {
         window.location.href = '/';
         return;
     }

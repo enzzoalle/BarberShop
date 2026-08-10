@@ -7,6 +7,8 @@ public class Agendamentos
     public int Id { get; set; }
     public Clientes Clientes { get; set; }
     public Servicos Servicos { get; set; }
+    public int? FuncionarioId { get; set; }
+    public Funcionarios? Funcionario { get; set; }
     public DateTime DataAgendamento { get; set; }
     public TimeSpan HorarioAgendamento { get; set; }
     public string? Observacao { get; set; }

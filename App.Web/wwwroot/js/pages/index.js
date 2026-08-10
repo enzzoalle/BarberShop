@@ -4,9 +4,10 @@
 
 async function carregarHomeCompleta() {
     const servicosContainer = $('#homeServicosGrid');
+    const equipeContainer = $('#homeEquipeGrid');
     const horariosContainer = $('#homeHorariosGrid');
 
-    carregarInfoGrid();
+    await carregarInfoGrid();
 
     let servicos;
     try {
@@ -14,8 +15,18 @@ async function carregarHomeCompleta() {
         renderizarServicosHome(servicosContainer, servicos || []);
     } catch {
         servicosContainer.html('<p class="text-danger">Erro ao carregar serviços.</p>');
+        equipeContainer.html('<p class="text-danger">Erro ao carregar equipe.</p>');
         horariosContainer.html('<p class="text-muted">Não foi possível carregar a disponibilidade.</p>');
         return;
+    }
+
+    let funcionarios;
+    try {
+        funcionarios = await Funcionarios_ListarAtivos();
+        renderizarEquipeHome(equipeContainer, funcionarios || []);
+    } catch {
+        funcionarios = [];
+        equipeContainer.html('<p class="text-danger">Erro ao carregar equipe.</p>');
     }
 
     if (!servicos || servicos.length === 0) {
@@ -23,7 +34,12 @@ async function carregarHomeCompleta() {
         return;
     }
 
-    await carregarDisponibilidadeSemanal(horariosContainer, servicos[0].id);
+    if (!funcionarios || funcionarios.length === 0) {
+        horariosContainer.html('<p class="text-muted">Nenhum horário disponível no momento.</p>');
+        return;
+    }
+
+    await carregarDisponibilidadeSemanal(horariosContainer, servicos[0].id, funcionarios[0].id);
 }
 
 async function carregarInfoGrid() {
@@ -50,7 +66,7 @@ async function carregarInfoGrid() {
     } catch { /* ignora */}
 }
 
-async function carregarDisponibilidadeSemanal(container, servicoId) {
+async function carregarDisponibilidadeSemanal(container, servicoId, funcionarioId) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
@@ -66,7 +82,7 @@ async function carregarDisponibilidadeSemanal(container, servicoId) {
     const consultas = diasFuturos.map(async function (dia) {
         const iso = formatDateIso(dia);
         try {
-            const horarios = await Agendamentos_ListarHorariosDisponiveis(iso, servicoId);
+            const horarios = await Agendamentos_ListarHorariosDisponiveis(iso, servicoId, funcionarioId);
             return { dia, horarios: horarios || [] };
         } catch {
             return { dia, horarios: [] };
@@ -95,6 +111,29 @@ function renderizarServicosHome(container, servicos) {
                 <h3>${nome}</h3>
                 <p class="servico-meta">${duracaoMin} min</p>
                 <strong>${valor}</strong>
+            </article>
+        `);
+    });
+}
+
+function renderizarEquipeHome(container, funcionarios) {
+    container.empty();
+
+    if (funcionarios.length === 0) {
+        container.html('<p class="text-muted">Nenhum funcionário disponível no momento.</p>');
+        return;
+    }
+
+    funcionarios.forEach(function (funcionario) {
+        const nome = escapeHtml(funcionario.nome);
+        const fotoHtml = funcionario.fotoPerfil
+            ? `<img src="data:image/jpeg;base64,${funcionario.fotoPerfil}" alt="Foto de ${nome}" class="rounded-circle mb-2" style="width: 72px; height: 72px; object-fit: cover;" />`
+            : `<div class="rounded-circle bg-secondary text-light d-inline-flex align-items-center justify-content-center mb-2" style="width: 72px; height: 72px;"><i class="bi bi-person"></i></div>`;
+
+        container.append(`
+            <article class="soft-card servico-home-card text-center">
+                ${fotoHtml}
+                <h3>${nome}</h3>
             </article>
         `);
     });

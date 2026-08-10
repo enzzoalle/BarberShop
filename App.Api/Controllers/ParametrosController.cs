@@ -24,14 +24,7 @@ public class ParametrosController : ControllerBase
     [HttpPost("Salvar")]
     public IActionResult Salvar([FromBody] SalvarParametrosRequestDTO requestDto)
     {
-        try
-        {
-            _parametrosService.Salvar(requestDto);
-            return Ok("Parâmetros atualizados com sucesso.");
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        _parametrosService.Salvar(requestDto);
+        return Ok("Parâmetros atualizados com sucesso.");
     }
 }

@@ -1,6 +1,6 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
-namespace App.Commom;
+namespace App.Common;
 
 public static class TextoHelper
 {

@@ -2,8 +2,13 @@
     return Get('Agendamentos/Listar');
 }
 
-async function Agendamentos_ListarHorariosDisponiveis(data, servicoId) {
-    return Get(`Agendamentos/ListarHorariosDisponiveis?data=${data}&servicoId=${servicoId}`);
+async function Agendamentos_ListarHorariosDisponiveis(data, servicoId, funcionarioId) {
+    return Get(`Agendamentos/ListarHorariosDisponiveis?data=${data}&servicoId=${servicoId}&funcionarioId=${funcionarioId}`);
+}
+
+async function Agendamentos_ObterDashboard(funcionarioId) {
+    const query = funcionarioId ? `?funcionarioId=${funcionarioId}` : '';
+    return Get(`Agendamentos/DashboardUltimos7Dias${query}`);
 }
 
 async function Agendamentos_Incluir(payload) {

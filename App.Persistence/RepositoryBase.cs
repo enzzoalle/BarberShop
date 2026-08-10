@@ -20,47 +20,25 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
 
     public void Insert(TEntity entity)
     {
-        try
-        {
-            _dbSet.Add(entity);
-            _appDbContext.SaveChanges();
-        }
-        catch (Exception e)
-        {
-            throw new Exception($"Erro: {e}");
-        }
+        _dbSet.Add(entity);
+        _appDbContext.SaveChanges();
     }
 
     public void Update(TEntity entity)
     {
-        try
-        {
-            _dbSet.Update(entity);
-            _appDbContext.SaveChanges();
-        }
-        catch (Exception e)
-        {
-            throw new Exception($"Erro: {e}");
-        }
+        _dbSet.Update(entity);
+        _appDbContext.SaveChanges();
     }
 
     public void Remove(TEntity entity)
     {
-        try
-        {
-            _dbSet.Remove(entity);
-            _appDbContext.SaveChanges();
-        }
-        catch (Exception e)
-        {
-            throw new Exception($"Erro: {e}");
-        }
+        _dbSet.Remove(entity);
+        _appDbContext.SaveChanges();
     }
 
-    public TEntity FindById(int id)
+    public TEntity? FindById(int id)
     {
-        var objeto = _appDbContext.Find<TEntity>(id);
-        return objeto ?? throw new Exception("Item não encontrado!");
+        return _appDbContext.Find<TEntity>(id);
     }
     
     public IQueryable<TEntity> Query(Expression<Func<TEntity, bool>> where)

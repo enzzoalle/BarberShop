@@ -80,7 +80,9 @@ public class ServicosService : IServicosService
 
     public bool AlterarStatus(int id, bool ativo)
     {
-        var servico = _servicoRepository.FindById(id);
+        var servico = _servicoRepository.FindById(id)
+                      ?? throw new InvalidOperationException("Serviço não encontrado.");
+
         servico.Ativo = ativo;
         _servicoRepository.Update(servico);
         return true;

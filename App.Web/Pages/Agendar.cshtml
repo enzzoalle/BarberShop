@@ -33,10 +33,17 @@
             </div>
         </fieldset>
 
+        <fieldset class="mb-4 form-step">
+            <legend>3. Funcionário</legend>
+            <div id="funcionariosContainer" class="servicos-grid">
+                <p class="text-muted">Carregando funcionários...</p>
+            </div>
+        </fieldset>
+
         <div class="row g-3 mb-4">
             <div class="col-md-6">
                 <fieldset class="h-100 form-step">
-                    <legend>3. Dia pretendido</legend>
+                    <legend>4. Dia pretendido</legend>
                     <input type="text" id="dataAgendamentoExibicao" class="form-control mb-3" readonly />
                     <div id="calendarioAgendamento" class="calendar-inline"></div>
                     <input type="hidden" id="dataAgendamento" name="dataAgendamento" required />
@@ -44,22 +51,22 @@
             </div>
             <div class="col-md-6">
                 <fieldset class="h-100 form-step">
-                    <legend>4. Horários disponíveis</legend>
+                    <legend>5. Horários disponíveis</legend>
                     <div id="horariosContainer" class="horarios-grid">
-                        <p class="text-muted">Selecione serviço e data para exibir horários.</p>
+                        <p class="text-muted">Selecione serviço, funcionário e data para exibir horários.</p>
                     </div>
                 </fieldset>
             </div>
         </div>
 
         <fieldset class="mb-4 form-step">
-            <legend>5. Observação (opcional)</legend>
+            <legend>6. Observação (opcional)</legend>
             <textarea id="observacao" name="observacao" class="form-control" rows="3" maxlength="500" placeholder="Ex.: degradê na lateral, barba aparada..."></textarea>
         </fieldset>
 
         <input type="hidden" id="horarioSelecionado" name="horarioSelecionado" required />
 
-        <button type="submit" class="btn btn-primary">Enviar solicitação</button>
+        <button type="submit" id="btnConfirmarAgendamento" class="btn btn-primary">Enviar solicitação</button>
         <p id="mensagemAgendamento" class="mt-3 mb-0"></p>
     </form>
 </section>
