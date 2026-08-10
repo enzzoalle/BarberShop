@@ -5,6 +5,7 @@ public class CriarAgendamentoManualRequestDTO
     public string NomeCliente { get; set; } = string.Empty;
     public string? NumeroTelefoneCliente { get; set; }
     public int ServicoId { get; set; }
+    public int FuncionarioId { get; set; }
     public DateTime DataAgendamento { get; set; }
     public TimeSpan HorarioAgendamento { get; set; }
     public string? Observacao { get; set; }

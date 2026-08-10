@@ -15,7 +15,8 @@ public class HorariosFixosService : IHorariosFixosService
     public HorariosFixosService(
         IRepositoryBase<HorariosFixos> horariosFixosRepository,
         IRepositoryBase<Usuarios> usuariosRepository,
-        IRepositoryBase<Servicos> servicosRepository)
+        IRepositoryBase<Servicos> servicosRepository
+    )
     {
         _horariosFixosRepository = horariosFixosRepository;
         _usuariosRepository = usuariosRepository;
@@ -39,16 +40,27 @@ public class HorariosFixosService : IHorariosFixosService
 
     public void Incluir(IncluirHorarioFixoRequestDTO request)
     {
-        var usuario = _usuariosRepository.FindById(request.UsuarioId);
-        if (usuario == null)
+        if (request.RepetirACadaSemanas < 1)
         {
-            throw new InvalidOperationException("Usuário não encontrado.");
+            throw new InvalidOperationException("Informe a cada quantas semanas o horário deve se repetir (mínimo 1).");
         }
 
-        var servico = _servicosRepository.FindById(request.ServicoId);
-        if (servico == null)
+        _ = _usuariosRepository.FindById(request.UsuarioId)
+            ?? throw new InvalidOperationException("Usuário não encontrado.");
+
+        _ = _servicosRepository.FindById(request.ServicoId)
+            ?? throw new InvalidOperationException("Serviço não encontrado.");
+
+        var jaExiste = _horariosFixosRepository
+            .Query(h => h.UsuarioId == request.UsuarioId
+                        && h.ServicoId == request.ServicoId
+                        && h.DiaDaSemana == request.DiaDaSemana
+                        && h.Horario == request.Horario)
+            .Any();
+
+        if (jaExiste)
         {
-            throw new InvalidOperationException("Serviço não encontrado.");
+            throw new InvalidOperationException("Você já possui um horário fixo cadastrado para esse dia e horário.");
         }
 
         var novo = new HorariosFixos

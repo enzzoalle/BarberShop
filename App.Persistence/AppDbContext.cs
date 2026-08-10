@@ -26,6 +26,18 @@ public class AppDbContext : DbContext
             .HasForeignKey<Clientes>(c => c.UsuarioId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        modelBuilder.Entity<Funcionarios>()
+            .HasOne(f => f.Usuario)
+            .WithOne(u => u.Funcionario)
+            .HasForeignKey<Funcionarios>(f => f.UsuarioId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Agendamentos>()
+            .HasOne(a => a.Funcionario)
+            .WithMany()
+            .HasForeignKey(a => a.FuncionarioId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         modelBuilder.Entity<FolgasFeriados>()
             .HasOne(x => x.Parametros)
             .WithMany(x => x.FolgasFeriados)
@@ -48,4 +60,5 @@ public class AppDbContext : DbContext
     public DbSet<Clientes> Clientes { get; set; }
     public DbSet<FolgasFeriados> FolgasFeriados { get; set; }
     public DbSet<HorariosFixos> HorariosFixos { get; set; }
+    public DbSet<Funcionarios> Funcionarios { get; set; }
 }

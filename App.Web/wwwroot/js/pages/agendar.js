@@ -1,5 +1,7 @@
 let servicos = [];
+let funcionarios = [];
 let servicoSelecionadoId = null;
+let funcionarioSelecionadoId = null;
 let horarioSelecionado = null;
 let calendarioInstancia = null;
 let datasBloqueadas = [];
@@ -9,6 +11,7 @@ $(document).ready(async function () {
     await carregarParametrosAgendamento();
     inicializarCalendario();
     await carregarServicos();
+    await carregarFuncionarios();
     configurarEventos();
     preencherDataPadrao();
     await atualizarHorarios();
@@ -98,13 +101,48 @@ async function carregarServicos() {
 
         $('input[name="servicoId"]').on('change', async function () {
             servicoSelecionadoId = Number($(this).val());
-            $('.servico-card').removeClass('active');
+            $('#servicosContainer .servico-card').removeClass('active');
             $(this).closest('.servico-card').addClass('active');
             await atualizarHorarios();
         });
     } catch (erro) {
         console.error(erro);
         $('#servicosContainer').html('<p class="text-danger">Erro ao carregar serviços.</p>');
+    }
+}
+
+async function carregarFuncionarios() {
+    try {
+        funcionarios = await Funcionarios_ListarAtivos();
+        const container = $('#funcionariosContainer');
+        container.empty();
+
+        if (!funcionarios || funcionarios.length === 0) {
+            container.append('<p class="text-muted">Nenhum funcionário disponível no momento.</p>');
+            return;
+        }
+
+        funcionarios.forEach(function (funcionario) {
+            const id = funcionario.id;
+            const nome = escapeHtml(funcionario.nome);
+
+            container.append(`
+                <label class="servico-card" for="funcionario-${id}">
+                    <input type="radio" id="funcionario-${id}" name="funcionarioId" value="${id}" required />
+                    <span class="servico-card__titulo">${nome}</span>
+                </label>
+            `);
+        });
+
+        $('input[name="funcionarioId"]').on('change', async function () {
+            funcionarioSelecionadoId = Number($(this).val());
+            $('#funcionariosContainer .servico-card').removeClass('active');
+            $(this).closest('.servico-card').addClass('active');
+            await atualizarHorarios();
+        });
+    } catch (erro) {
+        console.error(erro);
+        $('#funcionariosContainer').html('<p class="text-danger">Erro ao carregar funcionários.</p>');
     }
 }
 
@@ -116,13 +154,13 @@ async function atualizarHorarios() {
     horarioSelecionado = null;
     $('#horarioSelecionado').val('');
 
-    if (!servicoSelecionadoId || !dataSelecionada) {
-        container.html('<p class="text-muted">Selecione serviço e data para exibir horários.</p>');
+    if (!servicoSelecionadoId || !funcionarioSelecionadoId || !dataSelecionada) {
+        container.html('<p class="text-muted">Selecione serviço, funcionário e data para exibir horários.</p>');
         return;
     }
 
     try {
-        const horarios = await Agendamentos_ListarHorariosDisponiveis(dataSelecionada, servicoSelecionadoId);
+        const horarios = await Agendamentos_ListarHorariosDisponiveis(dataSelecionada, servicoSelecionadoId, funcionarioSelecionadoId);
 
         const hoje = new Date();
         const dataHojeStr = formatDateIso(hoje);
@@ -172,12 +210,13 @@ async function confirmarAgendamento(e) {
         nomeCliente: $('#nomeCliente').val().trim(),
         numeroTelefoneCliente: $('#numeroTelefoneCliente').val().trim(),
         servicoId: servicoSelecionadoId,
+        funcionarioId: funcionarioSelecionadoId,
         dataAgendamento: $('#dataAgendamento').val(),
         horarioAgendamento: $('#horarioSelecionado').val(),
         observacao: $('#observacao').val().trim() || null
     };
 
-    if (!payload.nomeCliente || !payload.numeroTelefoneCliente || !payload.servicoId || !payload.dataAgendamento || !payload.horarioAgendamento) {
+    if (!payload.nomeCliente || !payload.numeroTelefoneCliente || !payload.servicoId || !payload.funcionarioId || !payload.dataAgendamento || !payload.horarioAgendamento) {
         exibirMensagem('#mensagemAgendamento', 'Preencha todos os campos obrigatórios.', false);
         return;
     }
@@ -189,9 +228,10 @@ async function confirmarAgendamento(e) {
         exibirMensagem('#mensagemAgendamento', 'Solicitação enviada com sucesso! Aguarde a aprovação do administrador.', true);
 
         $('#agendamentoForm')[0].reset();
-        $('#horariosContainer').html('<p class="text-muted">Selecione serviço e data para exibir horários.</p>');
+        $('#horariosContainer').html('<p class="text-muted">Selecione serviço, funcionário e data para exibir horários.</p>');
         $('.servico-card').removeClass('active');
         servicoSelecionadoId = null;
+        funcionarioSelecionadoId = null;
         horarioSelecionado = null;
         preencherDataPadrao();
     } catch (erro) {

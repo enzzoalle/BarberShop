@@ -1,6 +1,7 @@
 ﻿let adminAutoRefreshId = null;
 let manualServicos = [];
 let datasFolga = [];
+let dashboardChart = null;
 const aprovacoesEmAndamento = new Set();
 
 $(document).ready(function () {
@@ -16,11 +17,20 @@ $(document).ready(function () {
         await cadastrarServico();
     });
 
+    $('#novoFuncionarioForm').on('submit', async function (event) {
+        event.preventDefault();
+        await cadastrarFuncionario();
+    });
+
     $('#filtroDataAgenda').on('change', async function () {
         await carregarAgendaDoDia();
     });
 
-    $('#manualData, #manualServico').on('change', async function () {
+    $('#filtroFuncionarioDashboard').on('change', async function () {
+        await carregarDashboard();
+    });
+
+    $('#manualData, #manualServico, #manualFuncionario').on('change', async function () {
         await carregarHorariosManual();
     });
 
@@ -50,6 +60,8 @@ $(document).ready(function () {
     if (getUsuarioLogado()) {
         exibirPainel();
         carregarServicosParaManual();
+        carregarFuncionariosParaManual();
+        carregarFuncionariosAdmin();
         carregarParametros();
         carregarPainel();
         iniciarAutoRefreshAdmin();
@@ -75,6 +87,8 @@ async function autenticarAdmin() {
         window.dispatchEvent(new Event('auth-changed'));
         exibirPainel();
         await carregarServicosParaManual();
+        await carregarFuncionariosParaManual();
+        await carregarFuncionariosAdmin();
         await carregarParametros();
         await carregarPainel();
         iniciarAutoRefreshAdmin();
@@ -120,7 +134,8 @@ async function carregarPainel() {
     await Promise.all([
         carregarServicosAdmin(),
         carregarSolicitacoesPendentes(),
-        carregarAgendaDoDia()
+        carregarAgendaDoDia(),
+        carregarDashboard()
     ]);
 }
 
@@ -213,9 +228,142 @@ async function carregarServicosAdmin() {
     }
 }
 
+async function cadastrarFuncionario() {
+    const payload = {
+        nome: $('#funcionarioNome').val().trim(),
+        numeroTelefone: $('#funcionarioTelefone').val().trim(),
+        senha: $('#funcionarioSenha').val().trim()
+    };
+
+    if (!payload.nome || !payload.numeroTelefone || !payload.senha) {
+        exibirMensagem('#adminFuncionarioMensagem', 'Preencha nome, telefone e senha do funcionário.', false);
+        return;
+    }
+
+    try {
+        await Funcionarios_Cadastrar(payload);
+        exibirMensagem('#adminFuncionarioMensagem', 'Funcionário cadastrado com sucesso.', true);
+
+        $('#novoFuncionarioForm')[0].reset();
+
+        await carregarFuncionariosAdmin();
+        await carregarFuncionariosParaManual();
+    } catch (erro) {
+        exibirMensagem('#adminFuncionarioMensagem', erro.responseJSON || erro.responseText || 'Não foi possível cadastrar o funcionário.', false);
+    }
+}
+
+async function carregarFuncionariosAdmin() {
+    const body = $('#adminFuncionariosBody');
+    body.html('<tr><td colspan="3" class="text-muted">Carregando...</td></tr>');
+
+    try {
+        const funcionarios = await Funcionarios_Listar();
+
+        if (!funcionarios || funcionarios.length === 0) {
+            body.html('<tr><td colspan="3" class="text-muted">Nenhum funcionário cadastrado.</td></tr>');
+            return;
+        }
+
+        body.empty();
+        funcionarios.forEach(function (item) {
+            const { id, nome, numeroTelefone, ativo } = item;
+
+            body.append(`
+                <tr>
+                    <td>${escapeHtml(nome)}</td>
+                    <td>${escapeHtml(numeroTelefone)}</td>
+                    <td>
+                        <button class="btn btn-sm ${ativo ? 'btn-success' : 'btn-outline-light'}"
+                                data-funcionario-status-id="${id}"
+                                data-ativo="${ativo}">
+                            ${ativo ? 'Ativo' : 'Inativo'}
+                        </button>
+                    </td>
+                </tr>
+            `);
+        });
+
+        $('[data-funcionario-status-id]').off('click').on('click', async function () {
+            const id = Number($(this).data('funcionario-status-id'));
+            const ativoAtual = String($(this).data('ativo')).toLowerCase() === 'true';
+            const $btn = $(this);
+
+            $btn.prop('disabled', true).text('Aguarde...');
+
+            try {
+                await Funcionarios_AlterarStatus(id, !ativoAtual);
+                exibirMensagem('#adminFuncionarioMensagem', `Funcionário ${!ativoAtual ? 'ativado' : 'desativado'} com sucesso.`, true);
+                await carregarFuncionariosAdmin();
+                await carregarFuncionariosParaManual();
+            } catch (erro) {
+                exibirMensagem('#adminFuncionarioMensagem', erro.responseJSON || erro.responseText || 'Não foi possível alterar o status.', false);
+                $btn.prop('disabled', false);
+            }
+        });
+    } catch {
+        body.html('<tr><td colspan="3" class="text-danger">Erro ao carregar funcionários.</td></tr>');
+    }
+}
+
+async function carregarFuncionariosParaManual() {
+    try {
+        const funcionarios = await Funcionarios_ListarAtivos();
+
+        const seletorManual = $('#manualFuncionario');
+        const valorManualAtual = seletorManual.val();
+        seletorManual.empty().append('<option value="">Selecione...</option>');
+
+        const seletorDashboard = $('#filtroFuncionarioDashboard');
+        const valorDashboardAtual = seletorDashboard.val();
+        seletorDashboard.empty().append('<option value="">Todos os funcionários</option>');
+
+        (funcionarios || []).forEach(function ({ id, nome }) {
+            seletorManual.append(`<option value="${id}">${escapeHtml(nome)}</option>`);
+            seletorDashboard.append(`<option value="${id}">${escapeHtml(nome)}</option>`);
+        });
+
+        if (valorManualAtual) {
+            seletorManual.val(valorManualAtual);
+        }
+        if (valorDashboardAtual) {
+            seletorDashboard.val(valorDashboardAtual);
+        }
+    } catch {
+        $('#manualFuncionario').empty().append('<option value="">Erro ao carregar funcionários</option>');
+    }
+}
+
+async function carregarDashboard() {
+    const funcionarioId = $('#filtroFuncionarioDashboard').val() || null;
+
+    try {
+        const dados = await Agendamentos_ObterDashboard(funcionarioId);
+        const categorias = (dados || []).map(d => formatDateBrShort(String(d.data).slice(0, 10)));
+        const valores = (dados || []).map(d => d.quantidade);
+
+        if (!dashboardChart) {
+            dashboardChart = new ApexCharts(document.querySelector('#chartAgendamentos7Dias'), {
+                chart: { type: 'bar', height: 260, toolbar: { show: false } },
+                series: [{ name: 'Agendamentos', data: valores }],
+                xaxis: { categories: categorias },
+                colors: ['#6f42c1'],
+                dataLabels: { enabled: true },
+                theme: { mode: 'dark' }
+            });
+            dashboardChart.render();
+        } else {
+            dashboardChart.updateOptions({ xaxis: { categories: categorias } });
+            dashboardChart.updateSeries([{ name: 'Agendamentos', data: valores }]);
+        }
+    } catch (erro) {
+        console.error(erro);
+    }
+}
+
 async function carregarSolicitacoesPendentes() {
     const body = $('#adminSolicitacoesBody');
-    body.html('<tr><td colspan="6" class="text-muted">Carregando...</td></tr>');
+    body.html('<tr><td colspan="7" class="text-muted">Carregando...</td></tr>');
 
     try {
         const agendamentos = await Agendamentos_Listar();
@@ -229,14 +377,14 @@ async function carregarSolicitacoesPendentes() {
             });
 
         if (pendentes.length === 0) {
-            body.html('<tr><td colspan="6" class="text-muted">Nenhuma solicitação pendente.</td></tr>');
+            body.html('<tr><td colspan="7" class="text-muted">Nenhuma solicitação pendente.</td></tr>');
             return;
         }
 
         body.empty();
         pendentes.forEach(function (item) {
-            const { id, dataAgendamento, horarioAgendamento, clientes = {}, servicos = {} } = item;
-            
+            const { id, dataAgendamento, horarioAgendamento, clientes = {}, servicos = {}, funcionario } = item;
+
             const fotoHtml = clientes.fotoPerfil
                 ? `<img src="data:image/jpeg;base64,${clientes.fotoPerfil}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;" />`
                 : `<div class="rounded-circle bg-secondary text-light d-inline-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px; font-size: 0.6rem;"><i class="bi bi-person"></i></div>`;
@@ -248,6 +396,7 @@ async function carregarSolicitacoesPendentes() {
                     <td class="d-flex align-items-center">${fotoHtml}${escapeHtml(clientes.nome || '-')}</td>
                     <td>${escapeHtml(clientes.numeroTelefone || '-')}</td>
                     <td>${escapeHtml(servicos.nome || '-')}</td>
+                    <td>${escapeHtml(funcionario?.nome || '-')}</td>
                     <td>
                         <button type="button" class="btn btn-sm btn-success"
                                 data-aprovar-solicitacao-id="${id}">
@@ -262,14 +411,14 @@ async function carregarSolicitacoesPendentes() {
             await abrirAprovacaoSolicitacao(Number($(this).data('aprovar-solicitacao-id')), $(this));
         });
     } catch {
-        body.html('<tr><td colspan="6" class="text-danger">Erro ao carregar solicitações pendentes.</td></tr>');
+        body.html('<tr><td colspan="7" class="text-danger">Erro ao carregar solicitações pendentes.</td></tr>');
     }
 }
 
 async function carregarAgendaDoDia() {
     const dataSelecionada = $('#filtroDataAgenda').val();
     const body = $('#adminAgendaBody');
-    body.html('<tr><td colspan="5" class="text-muted">Carregando...</td></tr>');
+    body.html('<tr><td colspan="6" class="text-muted">Carregando...</td></tr>');
 
     try {
         const [agendamentos, servicos] = await Promise.all([
@@ -285,13 +434,13 @@ async function carregarAgendaDoDia() {
         atualizarInsights(filtrados, servicos || []);
 
         if (filtrados.length === 0) {
-            body.html('<tr><td colspan="5" class="text-muted">Nenhum agendamento encontrado para esta data.</td></tr>');
+            body.html('<tr><td colspan="6" class="text-muted">Nenhum agendamento encontrado para esta data.</td></tr>');
             return;
         }
 
         body.empty();
         filtrados.forEach(function (item) {
-            const { horarioAgendamento, statusAgendamento, clientes = {}, servicos: svc = {} } = item;
+            const { horarioAgendamento, statusAgendamento, clientes = {}, servicos: svc = {}, funcionario } = item;
 
             body.append(`
                 <tr>
@@ -299,12 +448,13 @@ async function carregarAgendaDoDia() {
                     <td>${escapeHtml(clientes.nome || '-')}</td>
                     <td>${escapeHtml(clientes.numeroTelefone || '-')}</td>
                     <td>${escapeHtml(svc.nome || '-')}</td>
+                    <td>${escapeHtml(funcionario?.nome || '-')}</td>
                     <td>${formatarStatus(statusAgendamento)}</td>
                 </tr>
             `);
         });
     } catch {
-        body.html('<tr><td colspan="5" class="text-danger">Erro ao carregar agendamentos.</td></tr>');
+        body.html('<tr><td colspan="6" class="text-danger">Erro ao carregar agendamentos.</td></tr>');
     }
 }
 
@@ -349,15 +499,16 @@ async function carregarServicosParaManual() {
 async function carregarHorariosManual() {
     const data = $('#manualData').val();
     const servicoId = Number($('#manualServico').val());
+    const funcionarioId = Number($('#manualFuncionario').val());
     const seletor = $('#manualHorario');
 
     seletor.empty().append('<option value="">Selecione...</option>');
-    if (!data || !servicoId) {
+    if (!data || !servicoId || !funcionarioId) {
         return;
     }
 
     try {
-        const horarios = await Agendamentos_ListarHorariosDisponiveis(data, servicoId);
+        const horarios = await Agendamentos_ListarHorariosDisponiveis(data, servicoId, funcionarioId);
         if (!horarios || horarios.length === 0) {
             seletor.append('<option value="">Sem horários disponíveis</option>');
             return;
@@ -373,13 +524,14 @@ async function criarAgendamentoManual() {
         nomeCliente: $('#manualNomeCliente').val().trim(),
         numeroTelefoneCliente: $('#manualTelefoneCliente').val().trim() || null,
         servicoId: Number($('#manualServico').val()),
+        funcionarioId: Number($('#manualFuncionario').val()),
         dataAgendamento: $('#manualData').val(),
         horarioAgendamento: $('#manualHorario').val(),
         observacao: $('#manualObservacao').val().trim() || null
     };
 
-    if (!payload.nomeCliente || !payload.servicoId || !payload.dataAgendamento || !payload.horarioAgendamento) {
-        exibirMensagem('#adminManualMensagem', 'Preencha nome, data, serviço e horário.', false);
+    if (!payload.nomeCliente || !payload.servicoId || !payload.funcionarioId || !payload.dataAgendamento || !payload.horarioAgendamento) {
+        exibirMensagem('#adminManualMensagem', 'Preencha nome, data, serviço, funcionário e horário.', false);
         return;
     }
 

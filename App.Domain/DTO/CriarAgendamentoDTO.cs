@@ -13,6 +13,9 @@ public class CriarAgendamentoRequest
     [Required(ErrorMessage = "Informe o serviço.")]
     public int ServicoId { get; set; }
 
+    [Required(ErrorMessage = "Informe o funcionário.")]
+    public int FuncionarioId { get; set; }
+
     public DateTime DataAgendamento { get; set; }
     public TimeSpan HorarioAgendamento { get; set; }
     public string? Observacao { get; set; }

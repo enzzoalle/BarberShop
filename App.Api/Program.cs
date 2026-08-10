@@ -1,4 +1,5 @@
 using System.Text.Json;
+using App.Api.Middlewares;
 using App.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 App.Persistence.DependencyInjectionConfig.Inject(builder.Services);
 App.Application.DependencyInjectionConfig.Inject(builder.Services);
+
+builder.Services.AddExceptionHandler<AppExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddCors(options =>
 {
@@ -38,6 +42,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("WebClient");

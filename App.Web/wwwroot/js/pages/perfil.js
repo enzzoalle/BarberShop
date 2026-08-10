@@ -10,8 +10,37 @@ $(document).ready(async function () {
         $('#imgPerfil').attr('src', 'data:image/jpeg;base64,' + usuario.fotoPerfil).removeClass('d-none');
     }
 
+    applyPhoneMask('#editarTelefone');
+    $('#editarNome').val(usuario.nome || '');
+    $('#editarTelefone').val(usuario.numeroTelefone || '');
+
     await carregarServicosFixo();
     await carregarHorariosFixos();
+
+    $('#formEditarPerfil').on('submit', async function (e) {
+        e.preventDefault();
+
+        const payload = {
+            id: usuario.id,
+            nome: $('#editarNome').val().trim(),
+            numeroTelefone: $('#editarTelefone').val().trim()
+        };
+
+        try {
+            $('#msgEditarPerfil').removeClass('text-danger').addClass('text-info').text('Salvando...');
+            await Usuarios_Editar(payload);
+
+            usuario.nome = payload.nome;
+            usuario.numeroTelefone = payload.numeroTelefone;
+            salvarSessaoUsuario(usuario);
+            window.dispatchEvent(new Event('auth-changed'));
+
+            $('#msgEditarPerfil').removeClass('text-danger').addClass('text-info').text('Dados atualizados com sucesso!');
+        } catch (erro) {
+            const mensagem = erro.responseJSON || erro.responseText || 'Não foi possível salvar seus dados.';
+            $('#msgEditarPerfil').removeClass('text-info').addClass('text-danger').text(mensagem);
+        }
+    });
 
     $('#formFotoPerfil').on('submit', async function (e) {
         e.preventDefault();

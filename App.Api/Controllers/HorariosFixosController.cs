@@ -24,15 +24,8 @@ public class HorariosFixosController : ControllerBase
     [HttpPost("Incluir")]
     public IActionResult Incluir([FromBody] IncluirHorarioFixoRequestDTO request)
     {
-        try
-        {
-            _horariosFixosService.Incluir(request);
-            return Ok(new { mensagem = "Incluído com sucesso." });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        _horariosFixosService.Incluir(request);
+        return Ok(new { mensagem = "Incluído com sucesso." });
     }
 
     [HttpDelete("Excluir")]

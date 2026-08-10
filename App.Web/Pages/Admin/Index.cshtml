@@ -38,6 +38,9 @@
                 <button class="nav-link" id="tab-manual" data-bs-toggle="pill" data-bs-target="#painel-manual" type="button" role="tab" aria-controls="painel-manual" aria-selected="false">Agendamento manual</button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-funcionarios" data-bs-toggle="pill" data-bs-target="#painel-funcionarios" type="button" role="tab" aria-controls="painel-funcionarios" aria-selected="false">Funcionários</button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-parametros" data-bs-toggle="pill" data-bs-target="#painel-parametros" type="button" role="tab" aria-controls="painel-parametros" aria-selected="false">Parâmetros</button>
             </li>
         </ul>
@@ -64,7 +67,17 @@
                         </article>
                     </div>
                 </div>
-                
+
+                <div class="glass-card mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+                        <h5 class="mb-0">Agendamentos nos últimos 7 dias</h5>
+                        <select id="filtroFuncionarioDashboard" class="form-select form-select-sm admin-date-filter">
+                            <option value="">Todos os funcionários</option>
+                        </select>
+                    </div>
+                    <div id="chartAgendamentos7Dias"></div>
+                </div>
+
                 <div class="glass-card mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
                         <h5 class="mb-0">Solicitações pendentes</h5>
@@ -79,11 +92,12 @@
                                 <th>Cliente</th>
                                 <th>Telefone</th>
                                 <th>Serviço</th>
+                                <th>Funcionário</th>
                                 <th>Ação</th>
                             </tr>
                             </thead>
                             <tbody id="adminSolicitacoesBody">
-                            <tr><td colspan="6" class="text-muted">Carregando...</td></tr>
+                            <tr><td colspan="7" class="text-muted">Carregando...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -102,11 +116,12 @@
                                 <th>Cliente</th>
                                 <th>Telefone</th>
                                 <th>Serviço</th>
+                                <th>Funcionário</th>
                                 <th>Status</th>
                             </tr>
                             </thead>
                             <tbody id="adminAgendaBody">
-                            <tr><td colspan="5" class="text-muted">Selecione uma data para carregar os agendamentos.</td></tr>
+                            <tr><td colspan="6" class="text-muted">Selecione uma data para carregar os agendamentos.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -191,6 +206,12 @@
                             </select>
                         </div>
                         <div class="col-md-4">
+                            <label class="form-label" for="manualFuncionario">Funcionário</label>
+                            <select id="manualFuncionario" class="form-select" required>
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label" for="manualHorario">Horário</label>
                             <select id="manualHorario" class="form-select" required>
                                 <option value="">Selecione...</option>
@@ -205,6 +226,54 @@
                         </div>
                     </form>
                     <p id="adminManualMensagem" class="mt-3 mb-0"></p>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="painel-funcionarios" role="tabpanel" aria-labelledby="tab-funcionarios" tabindex="0">
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-lg-5">
+                        <div class="glass-card h-100">
+                            <h5 class="mb-3">Novo funcionário</h5>
+                            <form id="novoFuncionarioForm" class="d-grid gap-3">
+                                <div>
+                                    <label class="form-label" for="funcionarioNome">Nome</label>
+                                    <input id="funcionarioNome" class="form-control" maxlength="100" required />
+                                </div>
+                                <div>
+                                    <label class="form-label" for="funcionarioTelefone">Telefone</label>
+                                    <input id="funcionarioTelefone" class="form-control" maxlength="20" placeholder="(55) 99999-9999" required />
+                                </div>
+                                <div>
+                                    <label class="form-label" for="funcionarioSenha">Senha de acesso ao painel</label>
+                                    <input id="funcionarioSenha" type="password" class="form-control" maxlength="100" required />
+                                </div>
+                                <button class="btn btn-primary" type="submit">Cadastrar funcionário</button>
+                            </form>
+                            <p id="adminFuncionarioMensagem" class="mt-3 mb-0"></p>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-7">
+                        <div class="glass-card h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+                                <h5 class="mb-0">Funcionários cadastrados</h5>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-admin table-hover align-middle mb-0">
+                                    <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Telefone</th>
+                                        <th>Status</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="adminFuncionariosBody">
+                                    <tr><td colspan="3" class="text-muted">Carregando...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -263,5 +332,6 @@
 
 @section Scripts
 {
+    <script src="~/lib/apexcharts/dist/apexcharts.min.js"></script>
     <script src="~/js/pages/admin.js" asp-append-version="true"></script>
 }

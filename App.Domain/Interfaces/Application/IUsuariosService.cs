@@ -7,8 +7,9 @@ public interface IUsuariosService
 {
     IEnumerable<Usuarios> Listar();
     void Cadastrar(CadastrarUsuarioRequestDTO requestDto);
+    int CadastrarComoAdmin(string nome, string telefone, string senha);
     UsuarioAutenticadoResponseDTO Logar(LoginUsuarioRequestDTO requestDto);
     void Excluir(int id);
     void Editar(EditarUsuarioRequestDTO request);
-    void AtualizarFotoPerfil(int id, string fotoPerfil);
+    string AtualizarFotoPerfil(int id, string nomeArquivo, byte[] conteudo);
 }

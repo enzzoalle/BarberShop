@@ -17,101 +17,50 @@ public class UsuariosController : ControllerBase
     [HttpPost("Cadastrar")]
     public IActionResult Cadastrar([FromBody] CadastrarUsuarioRequestDTO request)
     {
-        try
-        {
-            _usuariosService.Cadastrar(request);
-            return Ok("Cadastro realizado com sucesso!");
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        _usuariosService.Cadastrar(request);
+        return Ok("Cadastro realizado com sucesso!");
     }
 
     [HttpPost("Logar")]
     public IActionResult Logar([FromBody] LoginUsuarioRequestDTO request)
     {
-        try
-        {
-            var usuario = _usuariosService.Logar(request);
-            return Ok(usuario);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
+        var usuario = _usuariosService.Logar(request);
+        return Ok(usuario);
     }
 
     [HttpPost("LogarAdmin")]
     public IActionResult LogarAdmin([FromBody] LoginUsuarioRequestDTO request)
     {
-        try
+        var usuario = _usuariosService.Logar(request);
+        if (!usuario.IsAdmin)
         {
-            var usuario = _usuariosService.Logar(request);
-            if (!usuario.IsAdmin)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden, "Usuário sem permissão para acessar o painel administrativo.");
-            }
+            return StatusCode(StatusCodes.Status403Forbidden, "Usuário sem permissão para acessar o painel administrativo.");
+        }
 
-            return Ok(usuario);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
+        return Ok(usuario);
     }
 
     [HttpDelete("Excluir")]
     public IActionResult Excluir([FromQuery] int id)
     {
-        try
-        {
-            _usuariosService.Excluir(id);
-            return Ok("Registro excluído com sucesso!");
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        _usuariosService.Excluir(id);
+        return Ok("Registro excluído com sucesso!");
     }
 
     [HttpPost("Editar")]
     public IActionResult Editar([FromBody] EditarUsuarioRequestDTO request)
     {
-        try
-        {
-            _usuariosService.Editar(request);
-            return Ok("Registro editado com sucesso!");
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        _usuariosService.Editar(request);
+        return Ok("Registro editado com sucesso!");
     }
 
     [HttpPost("UploadFotoPerfil")]
     public async Task<IActionResult> UploadFotoPerfil([FromQuery] int id, IFormFile file)
     {
-        try
-        {
-            var extensoes = new[] { ".png", ".jpg", ".jpeg" };
-            var ext = Path.GetExtension(file.FileName).ToLower();
-            if (!extensoes.Contains(ext))
-            {
-                return BadRequest("Formato de imagem inválido.");
-            }
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms);
 
-            using var ms = new MemoryStream();
-            await file.CopyToAsync(ms);
-            var fileBytes = ms.ToArray();
-            var base64 = Convert.ToBase64String(fileBytes);
-
-            _usuariosService.AtualizarFotoPerfil(id, base64);
-            return Ok(new { url = base64 });
-        }
-        catch (Exception)
-        {
-            return BadRequest("Erro ao fazer upload da foto.");
-        }
+        var url = _usuariosService.AtualizarFotoPerfil(id, file.FileName, ms.ToArray());
+        return Ok(new { url });
     }
 }

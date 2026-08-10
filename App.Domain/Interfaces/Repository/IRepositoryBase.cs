@@ -8,6 +8,6 @@ public interface IRepositoryBase<TEntity>
     void Insert(TEntity entity);
     void Update(TEntity entity);
     void Remove(TEntity entity);
-    TEntity FindById(int id);
+    TEntity? FindById(int id);
     IQueryable<TEntity> Query(Expression<Func<TEntity, bool>> where);
 }

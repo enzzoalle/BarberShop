@@ -20,6 +20,24 @@
             </div>
         </div>
         <div class="col-md-8">
+            <div class="card p-4 glass-card mb-4">
+                <h4 class="mb-3 text-light">Meus Dados</h4>
+                <form id="formEditarPerfil" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nome</label>
+                        <input type="text" id="editarNome" class="form-control" maxlength="100" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Telefone</label>
+                        <input type="text" id="editarTelefone" class="form-control" maxlength="20" placeholder="(55) 99999-9999" required />
+                    </div>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-outline-light mt-2">Salvar alterações</button>
+                        <div id="msgEditarPerfil" class="mt-2 text-info"></div>
+                    </div>
+                </form>
+            </div>
+
             <div class="card p-4 glass-card">
                 <h4 class="mb-3 text-light">Meus Horários Fixos</h4>
                 <p class="text-light text-opacity-75">Programe um agendamento para se repetir a cada X semanas. Ele será solicitado automaticamente todo domingo.</p>
